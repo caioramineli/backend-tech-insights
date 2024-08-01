@@ -4,7 +4,7 @@ const connectMongo = process.env.MONGODB_CONNECT_URI;
 
 function initializeDatabase() {
     mongoose.connect(connectMongo).then(() => {
-        console.log("Conectou!!");
+        console.log("Conectou!");
     }).catch((err) => console.log(err));
 }
 
