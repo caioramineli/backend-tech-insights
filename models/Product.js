@@ -8,11 +8,13 @@ const Product = mongoose.model('Product', {
     especificacoes: { type: String, required: true },
     marca: { type: String, required: true },
     categoria: { type: String, required: true },
-    img1: { type: String, required: true },
-    img2: { type: String, required: true },
-    img3: { type: String, required: true },
-    img4: { type: String, required: true },
-    img5: { type: String, required: true },
+    images: [
+        { type: String, required: true },
+        { type: String, required: true },
+        { type: String, required: true },
+        { type: String, required: true },
+        { type: String }
+    ],
     estoque: { type: Number, required: true }
 })
 

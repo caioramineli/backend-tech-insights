@@ -1,28 +1,20 @@
 const multer = require("multer");
 const path = require("path");
-const fs = require("fs");
+const { v4: uuidv4 } = require("uuid");
 
 const storage = multer.diskStorage({
     destination: function (req, file, callback) {
         callback(null, "imgs/");
     },
     filename: function (req, file, callback) {
-        fs.readdir("imgs/", (err, files) => {
-            if (err) {
-                return callback(err);
-            }
-            const fileCount = files.length + 1;
-            const extension = path.extname(file.originalname);
-            const uniqueName = `${fileCount}${extension}`;
-            callback(null, uniqueName);
-        });
-    }
+        const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
+        callback(null, uniqueName);
+    },
 });
 
 const upload = multer({ storage });
 
 module.exports = upload;
-
 // Outros codigos
 // function formatDate(date) {
 //     const day = String(date.getDate()).padStart(2, '0');
@@ -36,20 +28,4 @@ module.exports = upload;
 //     return `${day}-${month}-${year}-${hours}-${minutes}-${seconds}`;
 // }
 
-// const multer = require("multer");
-// const path = require("path");
-// const { v4: uuidv4 } = require("uuid");
 
-// const storage = multer.diskStorage({
-//     destination: function (req, file, callback) {
-//         callback(null, "imgs/");
-//     },
-//     filename: function (req, file, callback) {
-//         const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
-//         callback(null, uniqueName);
-//     },
-// });
-
-// const upload = multer({ storage });
-
-// module.exports = upload;
