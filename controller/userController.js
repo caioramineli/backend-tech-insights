@@ -1,86 +1,145 @@
-const fs = require("fs");
-const Product = require('../models/Product');
-const upload = require('../config/multer');
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 
-function productController(app) {
-    app.post("/product/create", upload.array("images", 5), async (req, res) => {
-        if (!req.files || req.files.length < 4 || req.files.length > 5) {
-            if (req.files) {
-                req.files.forEach(file => fs.unlink(file.path, err => {
-                    if (err) console.error(`Erro ao deletar o arquivo: ${file.path}`);
-                }));
-            }
-            return res.status(400).json({ msg: "São necessárias 4 ou 5 imagens" });
+const User = require('../models/User')
+
+function userController(app) {
+    app.get('/', (req, res) => {
+        res.status(200).send("Bem vindo a nossa API!");
+    })
+
+    // Private Route
+    app.get("/user/:id", checkToken, async (req, res) => {
+        const id = req.params.id
+
+        const user = await User.findById(id, '-senha')
+
+        if (!user) {
+            return res.status(404).json({ msg: "Usuário não encontrado!" })
         }
 
-        const {
+        res.status(200).json({ user })
+    })
+
+    function checkToken(req, res, next) {
+        const authHeader = req.headers['authorization']
+        const token = authHeader && authHeader.split(' ')[1]
+
+        if (!token) {
+            return res.status(401).json({ msg: "Acesso negado!" })
+        }
+
+        try {
+            const secret = process.env.SECRET
+
+            jwt.verify(token, secret)
+
+            next()
+
+        } catch (error) {
+            res.status(400).json({ msg: "Token inválido!" })
+        }
+    }
+
+    app.post('/register', async (req, res) => {
+        const { nome, cpf, dataNascimento, telefone, email, senha } = req.body
+
+        // validações
+        if (!nome) {
+            return res.status(422).json({ msg: "O nome é obrigatório!" })
+        }
+
+        if (!cpf) {
+            return res.status(422).json({ msg: "O CPF é obrigatório!" })
+        }
+
+        if (!dataNascimento) {
+            return res.status(422).json({ msg: "A data de nascimento é obrigatório!" })
+        }
+
+        if (!telefone) {
+            return res.status(422).json({ msg: "O telefone é obrigatório!" })
+        }
+
+        if (!email) {
+            return res.status(422).json({ msg: "O email é obrigatório!" })
+        }
+
+        if (!senha) {
+            return res.status(422).json({ msg: "A senha é obrigatório!" })
+        }
+
+        const userExists = await User.findOne({ email: email })
+
+        if (userExists) {
+            return res.status(422).json({ msg: "E-mail já cadastrado!" })
+        }
+
+        const salt = await bcrypt.genSalt(12)
+        const passwordHash = await bcrypt.hash(senha, salt)
+
+        const user = new User({
             nome,
-            precoPrazo,
-            descricao,
-            especificacoes,
-            marca,
-            categoria,
-        } = req.body;
-
-        if (!nome || !precoPrazo || !descricao || !especificacoes || !marca || !categoria) {
-            req.files.forEach(file => fs.unlink(file.path, err => {
-                if (err) console.error(`Erro ao deletar o arquivo: ${file.path}`);
-            }));
-            return res.status(400).json({ msg: "Todos os campos são obrigatórios." });
-        }
-
-        const imgPaths = req.files.map(file => file.path);
-
-        const images = imgPaths;
-
-        const product = new Product({
-            nome,
-            precoPrazo,
-            preco: precoPrazo - precoPrazo * 0.1,
-            descricao,
-            especificacoes,
-            marca,
-            categoria,
-            images,
-            estoque: 0
-        });
+            cpf,
+            dataNascimento,
+            telefone,
+            email,
+            senha: passwordHash,
+        })
 
         try {
-            await product.save();
-            res.status(201).json({ msg: "Produto cadastrado com sucesso!" });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ msg: "Erro no servidor!" });
-        }
-    });
+            await user.save()
+            res.status(201).json({ msg: 'Usuário criado com sucesso!' })
 
-    app.get("/product/:id", async (req, res) => {
-        const id = req.params.id;
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ msg: "Erro no servidor!" })
+        }
+    })
+
+    //login
+    app.post("/login", async (req, res) => {
+        const { email, senha } = req.body;
+
+        // validações
+        if (!email) {
+            return res.status(422).json({ msg: "O email é obrigatório!" });
+        }
+
+        if (!senha) {
+            return res.status(422).json({ msg: "A senha é obrigatória!" });
+        }
+
+        // checar se o usuario existe
+        const user = await User.findOne({ email: email });
+
+        if (!user) {
+            return res.status(404).json({ msg: "Usuário não encontrado!" });
+        }
+
+        const checkPassword = await bcrypt.compare(senha, user.senha);
+
+        if (!checkPassword) {
+            return res.status(422).json({ msg: "Senha Inválida!" });
+        }
 
         try {
-            const product = await Product.findById(id);
-            if (!product) {
-                return res.status(404).json({ msg: "Produto não encontrado!" });
-            }
-            res.status(200).json({ product });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ msg: "Erro no servidor!" });
-        }
-    });
+            const secret = process.env.SECRET;
+            const token = jwt.sign(
+                {
+                    id: user._id,
+                    nome: user.nome // Adicione o nome do usuário no token
+                },
+                secret,
+            );
 
-    app.get("/product/", async (req, res) => {
-        try {
-            const products = await Product.find();
-            if (products.length === 0) {
-                return res.status(404).json({ msg: "Nenhum produto encontrado!" });
-            }
-            res.status(200).json({ products });
+            res.status(200).json({ msg: 'Autenticação realizada com sucesso!', token });
+
         } catch (error) {
-            console.error(error);
+            console.log(error);
             res.status(500).json({ msg: "Erro no servidor!" });
         }
     });
 }
 
-module.exports = { productController };
+module.exports = { userController };

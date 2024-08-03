@@ -4,7 +4,7 @@ const upload = require('../config/multer');
 
 function productController(app) {
     app.post("/product/create", upload.array("images", 5), async (req, res) => {
-        if (!req.files || (req.files.length !== 4 && req.files.length !== 5)) {
+        if (!req.files || req.files.length < 4 || req.files.length > 5) {
             if (req.files) {
                 req.files.forEach(file => fs.unlink(file.path, err => {
                     if (err) console.error(`Erro ao deletar o arquivo: ${file.path}`);
@@ -22,13 +22,16 @@ function productController(app) {
             categoria,
         } = req.body;
 
+        if (!nome || !precoPrazo || !descricao || !especificacoes || !marca || !categoria) {
+            req.files.forEach(file => fs.unlink(file.path, err => {
+                if (err) console.error(`Erro ao deletar o arquivo: ${file.path}`);
+            }));
+            return res.status(400).json({ msg: "Todos os campos são obrigatórios." });
+        }
+
         const imgPaths = req.files.map(file => file.path);
 
-        const images = imgPaths; 
-
-        if (req.files.length === 5) {
-            images.img5 = imgPaths[4];
-        }
+        const images = imgPaths;
 
         const product = new Product({
             nome,
@@ -67,7 +70,6 @@ function productController(app) {
     });
 
     app.get("/product/", async (req, res) => {
-
         try {
             const products = await Product.find();
             if (products.length === 0) {
@@ -79,7 +81,6 @@ function productController(app) {
             res.status(500).json({ msg: "Erro no servidor!" });
         }
     });
-
 }
 
 module.exports = { productController };
