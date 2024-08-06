@@ -5,7 +5,7 @@ const User = require('../models/User')
 
 function userController(app) {
     app.get('/', (req, res) => {
-        res.status(200).send("Bem vindo a nossa API!");
+        res.status(200).json({ msg: "Bem vindo!" });
     })
 
     // Private Route
