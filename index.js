@@ -2,9 +2,13 @@ require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 const path = require('path');
+
 const { initializeDatabase } = require('./config/dataBaseConn')
 const { userController } = require('./controller/userController')
 const { productController } = require('./controller/productController')
+const { orderController } = require('./controller/orderController')
+const { addressController } = require('./controller/addressController')
+const { cuponController } = require('./controller/cuponController')
 
 const app = express()
 const port = process.env.PORT || 5000
@@ -16,6 +20,9 @@ initializeDatabase();
 
 userController(app)
 productController(app)
+orderController(app)
+addressController(app)
+cuponController(app)
 
 app.use('/imgs', express.static(path.join(__dirname, 'imgs')));
 

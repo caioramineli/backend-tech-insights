@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/User')
 
 function userController(app) {
-    app.get('/', (req, res) => {
+    app.get('/', (res) => {
         res.status(200).json({ msg: "Bem vindo!" });
     })
 
