@@ -2,15 +2,16 @@ const Cupon = require('../models/Cupon')
 
 function cuponController(app) {
 
-    app.post('/addrees/create', async (req, res) => {
-        const { codigo, descricao, tipo, valor, status } = req.body;
+    app.post('/cupon/create', async (req, res) => {
+        const { codigo, descricao, valor, status, quantidade, validade } = req.body;
 
         const cupon = new Cupon({
             codigo,
             descricao,
-            tipo,
             valor,
             status,
+            quantidade,
+            validade
         });
 
         try {
@@ -20,6 +21,21 @@ function cuponController(app) {
         } catch (error) {
             console.log(error);
             res.status(500).json({ msg: "Erro ao cadastrar cupom!" })
+        }
+    })
+
+    app.get('/cupon/:codigo', async (req, res) => {
+        const codigo = req.params.codigo;
+
+        try {
+            const cupom = await Cupon.findOne({ codigo });
+            if (!cupom) {
+                return res.status(404).json({ msg: "Cupom não encontrado!" });
+            }
+            res.status(200).json({ cupom });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ msg: "Erro no servidor!" });
         }
     })
 }

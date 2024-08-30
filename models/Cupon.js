@@ -3,9 +3,10 @@ const mongoose = require('mongoose')
 const Cupon = mongoose.model('Cupon', {
     codigo: String,
     descricao: String,
-    tipo: String,
     valor: Number,
-    status: String,
+    status: Boolean,
+    quantidade: Number,
+    validade: Date
 })
 
 module.exports = Cupon
