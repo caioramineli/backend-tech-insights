@@ -29,15 +29,22 @@ function cuponController(app) {
 
         try {
             const cupom = await Cupon.findOne({ codigo });
+
             if (!cupom) {
                 return res.status(404).json({ msg: "Cupom não encontrado!" });
             }
-            res.status(200).json({ cupom });
+
+            const hoje = new Date();
+            if (cupom.expiryDate && cupom.expiryDate < hoje) {
+                return res.status(400).json({ msg: "Cupom expirado!" });
+            }
+
+            res.status(200).json({ desconto: cupom.valor, msg: "Cupom válido!" });
         } catch (error) {
             console.error(error);
             res.status(500).json({ msg: "Erro no servidor!" });
         }
-    })
+    });
 }
 
 module.exports = { cuponController };
