@@ -3,12 +3,12 @@ const Address = require('../models/Address')
 function addressController(app) {
 
     app.post('/address/create', async (req, res) => {
-        const { nome, cep, id_user, rua, numero, complemento, bairro, cidade, estado } = req.body;
+        const { nome, cep, idUser, rua, numero, complemento, bairro, cidade, estado } = req.body;
 
         const address = new Address({
             nome,
             cep,
-            id_user,
+            idUser,
             rua,
             numero,
             complemento,

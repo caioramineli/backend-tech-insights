@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const Address = mongoose.model('Address', {
     nome: String,
     cep: String,
-    id_user: {
+    idUser: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
     },
