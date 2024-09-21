@@ -2,13 +2,13 @@ const mongoose = require('mongoose')
 
 const Order = mongoose.model('Order', {
     data: Date,
-    id_user: {
+    idUser: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
     produtos: [{
-        id_produto: {
+        idProduto: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Product',
             required: true
@@ -18,15 +18,14 @@ const Order = mongoose.model('Order', {
             required: true
         }
     }],
-    id_endereco: {
+    idEndereco: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Address',
         required: true
     },
-    forma_pagamento: String,
+    formaPagamento: String,
     desconto: Number,
     frete: Number,
-    valor_total: Number,
-})
+    valorTotal: Number,
+});
 
-module.exports = Order
+module.exports = Order;

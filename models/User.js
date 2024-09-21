@@ -10,7 +10,7 @@ const enderecoSchema = new mongoose.Schema({
     bairro: String,
     cidade: String,
     estado: String,
-}, { _id: false }); // Desabilitar o campo _id em endereços individuais
+});
 
 // Esquema de usuário
 const userSchema = new mongoose.Schema({
