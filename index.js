@@ -7,7 +7,6 @@ const { initializeDatabase } = require('./config/dataBaseConn')
 const { userController } = require('./controller/userController')
 const { productController } = require('./controller/productController')
 const { orderController } = require('./controller/orderController')
-const { addressController } = require('./controller/addressController')
 const { cuponController } = require('./controller/cuponController')
 
 const app = express()
@@ -21,7 +20,6 @@ initializeDatabase();
 userController(app)
 productController(app)
 orderController(app)
-addressController(app)
 cuponController(app)
 
 app.use('/imgs', express.static(path.join(__dirname, 'imgs')));

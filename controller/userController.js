@@ -128,7 +128,7 @@ function userController(app) {
             const token = jwt.sign(
                 {
                     id: user._id,
-                    nome: user.nome // Adicione o nome do usuário no token
+                    nome: user.nome
                 },
                 secret,
             );
@@ -138,6 +138,26 @@ function userController(app) {
         } catch (error) {
             console.log(error);
             res.status(500).json({ msg: "Erro no servidor!" });
+        }
+    });
+
+    app.post('/user/:id/endereco', async (req, res) => {
+        const { id } = req.params;
+        const novoEndereco = req.body;
+
+        try {
+            const user = await User.findById(id);
+            if (!user) {
+                return res.status(404).json({ msg: 'Usuário não encontrado!' });
+            }
+
+            user.enderecos.push(novoEndereco); // Adicionar o novo endereço
+            await user.save();
+
+            res.status(200).json({ msg: 'Endereço adicionado com sucesso!', enderecos: user.enderecos });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ msg: 'Erro ao adicionar endereço!' });
         }
     });
 }
