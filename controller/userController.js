@@ -4,9 +4,9 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/User')
 
 function userController(app) {
-    app.get('/', (res) => {
+    app.get('/', (req, res) => {
         res.status(200).json({ msg: "Bem vindo!" });
-    })
+    });
 
     // Private Route
     app.get("/user/:id", checkToken, async (req, res) => {
