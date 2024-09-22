@@ -151,7 +151,7 @@ function userController(app) {
                 return res.status(404).json({ msg: 'Usuário não encontrado!' });
             }
 
-            user.enderecos.push(novoEndereco); // Adicionar o novo endereço
+            user.enderecos.push(novoEndereco);
             await user.save();
 
             res.status(200).json({ msg: 'Endereço adicionado com sucesso!', enderecos: user.enderecos });
@@ -160,6 +160,81 @@ function userController(app) {
             res.status(500).json({ msg: 'Erro ao adicionar endereço!' });
         }
     });
+
+    app.get('/user/:id/endereco', async (req, res) => {
+        const { id } = req.params;
+
+        try {
+            const user = await User.findById(id);
+
+            if (!user) {
+                return res.status(404).json({ msg: 'Usuário não encontrado!' });
+            }
+
+            res.status(200).json({ enderecos: user.enderecos });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ msg: 'Erro ao buscar endereços!' });
+        }
+    });
+
+    app.put('/user/:id/endereco', async (req, res) => {
+        const { id } = req.params;
+        const { enderecoId, nome, cep, rua, numero, complemento, bairro, cidade, estado } = req.body;
+
+        try {
+            const user = await User.findById(id);
+
+            if (!user) {
+                return res.status(404).json({ msg: 'Usuário não encontrado!' });
+            }
+
+            const endereco = user.enderecos.id(enderecoId);
+
+            if (!endereco) {
+                return res.status(404).json({ msg: 'Endereço não encontrado!' });
+            }
+
+            endereco.nome = nome;
+            endereco.cep = cep;
+            endereco.rua = rua;
+            endereco.numero = numero;
+            endereco.complemento = complemento;
+            endereco.bairro = bairro;
+            endereco.cidade = cidade;
+            endereco.estado = estado;
+
+            await user.save();
+
+            res.status(200).json({ msg: 'Endereço atualizado com sucesso!', enderecos: user.enderecos });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ msg: 'Erro ao atualizar o endereço!' });
+        }
+    });
+
+
+    app.delete('/user/:id/endereco/:enderecoId', async (req, res) => {
+        const { id, enderecoId } = req.params;
+
+        try {
+            const user = await User.findById(id);
+
+            if (!user) {
+                return res.status(404).json({ msg: 'Usuário não encontrado!' });
+            }
+
+            user.enderecos.pull({ _id: enderecoId });
+
+            await user.save();
+
+            res.status(200).json({ msg: 'Endereço removido com sucesso!', enderecos: user.enderecos });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ msg: 'Erro ao remover o endereço!' });
+        }
+    });
+
 }
 
 module.exports = { userController };
