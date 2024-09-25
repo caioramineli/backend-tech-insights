@@ -128,7 +128,9 @@ function userController(app) {
             const token = jwt.sign(
                 {
                     id: user._id,
-                    nome: user.nome
+                    nome: user.nome,
+                    email: user.email,
+                    cpf: user.cpf
                 },
                 secret,
             );
