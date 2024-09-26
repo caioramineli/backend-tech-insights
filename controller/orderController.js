@@ -3,16 +3,16 @@ const Order = require('../models/Order')
 function orderController(app) {
 
     app.post('/order', async (req, res) => {
-        const { id_user, produtos, id_endereco, forma_pagamento, desconto, frete, valor_total } = req.body;
+        const { idUser, produtos, idEndereco, formaPagamento, desconto, frete, valorTotal } = req.body;
 
         const order = new Order({
-            id_user,
+            idUser,
             produtos,
-            id_endereco,
-            forma_pagamento,
+            idEndereco,
+            formaPagamento,
             desconto,
             frete,
-            valor_total,
+            valorTotal,
             data: new Date()
         });
 
