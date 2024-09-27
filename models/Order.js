@@ -24,7 +24,10 @@ const Order = mongoose.model('Order', {
     },
     formaPagamento: String,
     desconto: Number,
-    frete: Number,
+    frete: {
+        tipo: String,
+        valor: Number
+    },
     valorTotal: Number,
 });
 
