@@ -12,7 +12,10 @@ const { cuponController } = require('./controller/cuponController')
 const app = express()
 const port = process.env.PORT || 5000
 
-app.use(cors());
+app.use(cors({
+    origin: ['https://techinsights-tcc.vercel.app', 'http://localhost:3000']
+}));
+
 app.use(express.json())
 
 initializeDatabase();
