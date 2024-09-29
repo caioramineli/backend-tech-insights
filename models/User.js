@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// Esquema de endereço separado
 const enderecoSchema = new mongoose.Schema({
     nome: String,
     cep: String,
@@ -12,7 +11,6 @@ const enderecoSchema = new mongoose.Schema({
     estado: String,
 });
 
-// Esquema de usuário
 const userSchema = new mongoose.Schema({
     nome: { type: String, required: true },
     cpf: { type: String, required: true },

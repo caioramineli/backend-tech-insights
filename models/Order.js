@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 
 const Order = mongoose.model('Order', {
     data: Date,
+    numeroPedido: Number,
     idUser: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -16,7 +17,8 @@ const Order = mongoose.model('Order', {
         quantidade: {
             type: Number,
             required: true
-        }
+        },
+        _id: false
     }],
     idEndereco: {
         type: mongoose.Schema.Types.ObjectId,
