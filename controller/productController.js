@@ -81,6 +81,41 @@ function productController(app) {
             res.status(500).json({ msg: "Erro no servidor!" });
         }
     });
+
+    // Pesquisa produtos pelo nome, categoria ou marca e ordena se necessário.
+    app.get('/products/search', async (req, res) => {
+        try {
+            const query = req.query.q;  // Captura a string de consulta (ex: /products/search?q=nome)
+            const sort = req.query.sort; // Captura o parâmetro de ordenação (ex: /products/search?q=nome&sort=nome)
+
+            if (!query) {
+                return res.status(400).json({ message: 'Parâmetro de consulta não fornecido' });
+            }
+
+            const searchCriterio = {
+                $or: [
+                    { nome: { $regex: new RegExp(query, 'i') } },
+                    { categoria: { $regex: new RegExp(query, 'i') } },
+                    { marca: { $regex: new RegExp(query, 'i') } }
+                ]
+            };
+
+
+            let sortOption = {};
+            if (sort) {
+                const sortOrder = sort.startsWith('-') ? -1 : 1;
+                const sortField = sort.replace('-', '');
+                sortOption = { [sortField]: sortOrder };
+            }
+
+            const results = await Product.find(searchCriterio).sort(sortOption);
+
+            res.json(results);
+        } catch (error) {
+            console.error('Erro ao realizar a busca:', error);
+            res.status(500).json({ message: 'Erro no servidor' });
+        }
+    });
 }
 
 module.exports = { productController };
