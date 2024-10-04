@@ -237,6 +237,49 @@ function userController(app) {
         }
     });
 
+    app.post('/user/:id/favorito/:idProduto', async (req, res) => {
+        const { id, idProduto } = req.params;
+
+        try {
+            const user = await User.findById(id);
+            if (!user) {
+                return res.status(404).json({ msg: 'Usuário não encontrado!' });
+            }
+
+            const productExists = user.favoritos.includes(idProduto);
+
+            if (productExists) {
+                user.favoritos = user.favoritos.filter(fav => fav !== idProduto);
+                await user.save();
+                return res.status(200).json({ msg: 'Produto removido dos favoritos!', favoritos: user.favoritos });
+            }
+
+            user.favoritos.push(idProduto);
+            await user.save();
+
+            res.status(200).json({ msg: 'Produto adicionado aos favoritos!', favoritos: user.favoritos });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ msg: 'Erro ao favoritar!' });
+        }
+    });
+
+    app.get('/user/:id/favoritos', async (req, res) => {
+        const { id } = req.params;
+
+        try {
+            const user = await User.findById(id);
+
+            if (!user) {
+                return res.status(404).json({ msg: 'Usuário não encontrado!' });
+            }
+
+            res.status(200).json({ favoritos: user.favoritos });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ msg: 'Erro ao buscar os favoritos!' });
+        }
+    });
 }
 
 module.exports = { userController };
