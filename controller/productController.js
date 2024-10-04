@@ -116,6 +116,22 @@ function productController(app) {
             res.status(500).json({ message: 'Erro no servidor' });
         }
     });
+
+    app.post("/product/favoritos", async (req, res) => {
+        const favoritos = req.body
+
+        try {
+
+            const products = await Product.find({ _id: { $in: favoritos } });
+            if (products.length === 0) {
+                return res.status(404).json({ msg: "Nenhum produto encontrado!" });
+            }
+            res.status(200).json({ products });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ msg: "Erro no servidor!" });
+        }
+    });
 }
 
 module.exports = { productController };
