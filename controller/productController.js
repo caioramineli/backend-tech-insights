@@ -69,7 +69,7 @@ function productController(app) {
         }
     });
 
-    app.get("/product/", async (req, res) => {
+    app.get("/product", async (req, res) => {
         try {
             const products = await Product.find();
             if (products.length === 0) {
