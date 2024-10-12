@@ -5,25 +5,32 @@ function cuponController(app) {
     app.post('/cupon/create', async (req, res) => {
         const { codigo, descricao, tipo, valor, valorMinimoDoCarrinho, quantidade, validade } = req.body;
 
-        const cupon = new Cupon({
-            codigo,
-            descricao,
-            tipo,
-            valor,
-            valorMinimoDoCarrinho,
-            quantidade,
-            validade
-        });
-
         try {
-            await cupon.save()
-            res.status(201).json({ msg: 'Cupom cadastrado com sucesso!' })
+            const codigoCupomExists = await Cupon.findOne({ codigo: codigo });
+
+            if (codigoCupomExists) {
+                return res.status(422).json({ msg: "Código já cadastrado!" });
+            }
+
+            const novoCupom = new Cupon({
+                codigo,
+                descricao,
+                tipo,
+                valor,
+                valorMinimoDoCarrinho,
+                quantidade,
+                validade
+            });
+
+            await novoCupom.save();
+
+            return res.status(201).json({ msg: "Cupom criado com sucesso!" });
 
         } catch (error) {
-            console.log(error);
-            res.status(500).json({ msg: "Erro ao cadastrar cupom!" })
+            console.error("Erro ao criar cupom:", error);
+            return res.status(500).json({ msg: "Erro ao criar o cupom." });
         }
-    })
+    });
 
     app.get("/cupon/listar", async (req, res) => {
         try {
@@ -53,7 +60,17 @@ function cuponController(app) {
                 return res.status(400).json({ msg: "Cupom expirado!" });
             }
 
-            res.status(200).json({ desconto: cupom.valor, msg: "Cupom válido!" });
+            if (cupom.quantidade < 1) {
+                return res.status(400).json({ msg: "Cupom esgotado!" });
+            }
+
+            res.status(200).json({
+                codigo,
+                tipo: cupom.tipo,
+                desconto: cupom.valor,
+                minimo: cupom.valorMinimoDoCarrinho,
+                msg: "Cupom válido!"
+            });
         } catch (error) {
             console.error(error);
             res.status(500).json({ msg: "Erro no servidor!" });

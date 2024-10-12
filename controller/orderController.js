@@ -1,33 +1,45 @@
 const Order = require('../models/Order')
 const User = require('../models/User')
+const Cupon = require('../models/Cupon')
 
 function orderController(app) {
 
     app.post('/order', async (req, res) => {
-        const { idUser, produtos, idEndereco, formaPagamento, desconto, frete, valorTotal } = req.body;
+        const { idUser, produtos, idEndereco, formaPagamento, desconto, frete, valorTotal, codigoCupom } = req.body;
         const numeroPedido = Math.floor(Math.random() * 1000000);
 
-        const order = new Order({
-            numeroPedido: numeroPedido,
-            idUser,
-            produtos,
-            idEndereco,
-            formaPagamento,
-            desconto,
-            frete,
-            valorTotal,
-            data: new Date()
-        });
-
         try {
-            await order.save()
-            res.status(201).json({ msg: 'Pedido realizado com sucesso!', order })
+            const order = new Order({
+                numeroPedido,
+                idUser,
+                produtos,
+                idEndereco,
+                formaPagamento,
+                desconto,
+                frete,
+                valorTotal,
+                data: new Date()
+            });
 
+            await order.save();
+
+            let cupom = null;
+            if (codigoCupom) {
+                cupom = await Cupon.findOne({ codigo: codigoCupom });
+            }
+
+            if (cupom) {
+                cupom.quantidade -= 1;
+                await cupom.save();
+            }
+
+            res.status(201).json({ msg: 'Pedido realizado com sucesso!', order });
         } catch (error) {
             console.log(error);
-            res.status(500).json({ msg: "Erro ao realizar o pedido!" })
+            res.status(500).json({ msg: "Erro ao realizar o pedido!" });
         }
-    })
+    });
+
 
     app.get('/user/:id/orders', async (req, res) => {
         const { id } = req.params;
