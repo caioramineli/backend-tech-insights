@@ -97,6 +97,59 @@ function userController(app) {
         }
     })
 
+    app.put('/user/:id', async (req, res) => {
+        const { id } = req.params;
+        const { nome, dataNascimento, telefone, email } = req.body
+
+        try {
+            const user = await User.findById(id);
+
+            if (!user) {
+                return res.status(404).json({ msg: 'Usuário não encontrado!' });
+            }
+
+            user.nome = nome;
+            user.dataNascimento = dataNascimento;
+            user.telefone = telefone;
+            user.email = email;
+
+            await user.save();
+
+            res.status(200).json({ msg: 'Usuário atualizado com sucesso!', enderecos: user.enderecos });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ msg: 'Erro ao atualizar o usuário!' });
+        }
+    })
+
+    app.put('/user/:id/password', async (req, res) => {
+        const { id } = req.params;
+        const { senha, novaSenha } = req.body
+
+        try {
+            const user = await User.findById(id);
+
+            if (!user) {
+                return res.status(404).json({ msg: 'Usuário não encontrado!' });
+            }
+
+            const checkPassword = await bcrypt.compare(senha, user.senha);
+
+            if (!checkPassword) {
+                return res.status(422).json({ msg: "Senha incorreta!" });
+            }
+
+            user.senha = await bcrypt.hash(novaSenha, 12);
+
+            await user.save();
+
+            res.status(200).json({ msg: 'Senha atualizada com sucesso!', enderecos: user.enderecos });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ msg: 'Erro ao atualizar o usuário!' });
+        }
+    })
+
     //login
     app.post("/login", async (req, res) => {
         const { email, senha } = req.body;
