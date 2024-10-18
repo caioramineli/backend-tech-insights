@@ -233,9 +233,9 @@ function userController(app) {
         }
     });
 
-    app.put('/user/:id/endereco', async (req, res) => {
-        const { id } = req.params;
-        const { enderecoId, nome, cep, rua, numero, complemento, bairro, cidade, estado } = req.body;
+    app.put('/user/:id/endereco/:idEndereco', async (req, res) => {
+        const { id, idEndereco } = req.params;
+        const { nome, cep, rua, numero, complemento, bairro, cidade, estado } = req.body;
 
         try {
             const user = await User.findById(id);
@@ -244,7 +244,7 @@ function userController(app) {
                 return res.status(404).json({ msg: 'Usuário não encontrado!' });
             }
 
-            const endereco = user.enderecos.id(enderecoId);
+            const endereco = user.enderecos.id(idEndereco);
 
             if (!endereco) {
                 return res.status(404).json({ msg: 'Endereço não encontrado!' });
