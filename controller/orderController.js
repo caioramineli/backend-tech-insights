@@ -73,6 +73,44 @@ function orderController(app) {
             res.status(500).json({ msg: 'Erro ao buscar pedidos!' });
         }
     });
+
+    app.get('/user/:id/orders/:orderId', async (req, res) => {
+        const { id, orderId } = req.params;
+
+        try {
+            const user = await User.findById(id);
+
+            if (!user) {
+                return res.status(404).json({ msg: 'Usuário não encontrado!' });
+            }
+
+            const pedido = await Order.findOne({ idUser: id, _id: orderId })
+                .populate({
+                    path: 'produtos.idProduto',
+                    select: 'nome precoPrazo preco marca images'
+                })
+                .select('frete numeroPedido data produtos idEndereco formaPagamento desconto valorTotal');
+
+            if (!pedido) {
+                return res.status(404).json({ msg: 'Pedido não encontrado!' });
+            }
+
+            const pedidoOrganizado = {
+                ...pedido.toObject(),
+                produtos: pedido.produtos.map(produto => ({
+                    dadosProduto: produto.idProduto,
+                    quantidade: produto.quantidade
+                }))
+            };
+
+            res.json(pedidoOrganizado);
+
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ msg: 'Erro ao buscar pedido!' });
+        }
+    });
+
 }
 
 module.exports = { orderController };   
