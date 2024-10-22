@@ -132,6 +132,21 @@ function productController(app) {
             res.status(500).json({ msg: "Erro no servidor!" });
         }
     });
+
+    app.get('/produtos/:marca', async (req, res) => {
+        try {
+            const { marca } = req.params;
+
+            const marcaBusca = { marca: { $regex: new RegExp(marca, 'i') } };
+
+            const produtos = await Product.find(marcaBusca);
+
+            res.status(200).json(produtos);
+        } catch (error) {
+            console.error('Erro ao realizar a busca:', error);
+            res.status(500).json({ message: 'Erro no servidor' });
+        }
+    });
 }
 
 module.exports = { productController };
