@@ -78,7 +78,7 @@ function orderController(app) {
         const { id, orderId } = req.params;
 
         try {
-            const user = await User.findById(id);
+            const user = await User.findById(id).select('enderecos');
 
             if (!user) {
                 return res.status(404).json({ msg: 'Usuário não encontrado!' });
@@ -95,12 +95,15 @@ function orderController(app) {
                 return res.status(404).json({ msg: 'Pedido não encontrado!' });
             }
 
+            const enderecoPedido = user.enderecos.find(endereco => endereco._id.equals(pedido.idEndereco));
+
             const pedidoOrganizado = {
                 ...pedido.toObject(),
                 produtos: pedido.produtos.map(produto => ({
                     dadosProduto: produto.idProduto,
                     quantidade: produto.quantidade
-                }))
+                })),
+                endereco: enderecoPedido
             };
 
             res.json(pedidoOrganizado);
@@ -110,6 +113,7 @@ function orderController(app) {
             res.status(500).json({ msg: 'Erro ao buscar pedido!' });
         }
     });
+
 
 }
 
