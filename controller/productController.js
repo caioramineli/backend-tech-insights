@@ -147,6 +147,30 @@ function productController(app) {
             res.status(500).json({ message: 'Erro no servidor' });
         }
     });
+
+    app.get("/productHome", async (req, res) => {
+        try {
+            const { limite } = req.query;
+
+            const allProducts = await Product.find();
+
+            const primeiraParte = allProducts.slice(0, limite);
+            const segundaParte = allProducts.slice(limite);
+
+            if (allProducts.length === 0) {
+                return res.status(404).json({ msg: "Nenhum produto encontrado!" });
+            }
+
+            res.status(200).json({
+                primeirosProdutos: primeiraParte,
+                restanteProdutos: segundaParte
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ msg: "Erro no servidor!" });
+        }
+    });
+
 }
 
 module.exports = { productController };
