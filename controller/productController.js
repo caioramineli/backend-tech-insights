@@ -148,14 +148,29 @@ function productController(app) {
         }
     });
 
+    app.get('/produtos/categoria/:categoria', async (req, res) => {
+        try {
+            const { categoria } = req.params;
+
+            const categoriaBusca = { categoria: { $regex: new RegExp(categoria, 'i') } };
+
+            const produtos = await Product.find(categoriaBusca);
+
+            res.status(200).json(produtos);
+        } catch (error) {
+            console.error('Erro ao realizar a busca:', error);
+            res.status(500).json({ message: 'Erro no servidor' });
+        }
+    });
+
     app.get("/productHome", async (req, res) => {
         try {
-            const { limite } = req.query;
+            const { divisao } = req.query;
 
             const allProducts = await Product.find();
 
-            const primeiraParte = allProducts.slice(0, limite);
-            const segundaParte = allProducts.slice(limite);
+            const primeiraParte = allProducts.slice(0, divisao);
+            const segundaParte = allProducts.slice(divisao);
 
             if (allProducts.length === 0) {
                 return res.status(404).json({ msg: "Nenhum produto encontrado!" });
