@@ -4,13 +4,13 @@ const upload = require('../config/multer');
 
 function productController(app) {
     app.post("/product/create", upload.array("images", 5), async (req, res) => {
-        if (!req.files || req.files.length < 4 || req.files.length > 5) {
+        if (!req.files || req.files.length < 1 || req.files.length > 5) {
             if (req.files) {
                 req.files.forEach(file => fs.unlink(file.path, err => {
                     if (err) console.error(`Erro ao deletar o arquivo: ${file.path}`);
                 }));
             }
-            return res.status(400).json({ msg: "São necessárias 4 ou 5 imagens" });
+            return res.status(400).json({ msg: "É necessário enviar de 1 a 5 imagens" });
         }
 
         const {
