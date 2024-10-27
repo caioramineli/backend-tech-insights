@@ -151,10 +151,18 @@ function productController(app) {
     app.get('/produtos/categoria/:categoria', async (req, res) => {
         try {
             const { categoria } = req.params;
+            const sort = req.query.sort;
 
             const categoriaBusca = { categoria: { $regex: new RegExp(categoria, 'i') } };
 
-            const produtos = await Product.find(categoriaBusca);
+            let sortOption = {};
+            if (sort) {
+                const sortOrder = sort.startsWith('-') ? -1 : 1;
+                const sortField = sort.replace('-', '');
+                sortOption = { [sortField]: sortOrder };
+            }
+
+            const produtos = await Product.find(categoriaBusca).sort(sortOption);
 
             res.status(200).json(produtos);
         } catch (error) {
@@ -184,6 +192,9 @@ function productController(app) {
             console.error(error);
             res.status(500).json({ msg: "Erro no servidor!" });
         }
+
+        
+        
     });
 
 }
