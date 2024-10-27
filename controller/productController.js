@@ -192,9 +192,33 @@ function productController(app) {
             console.error(error);
             res.status(500).json({ msg: "Erro no servidor!" });
         }
+    });
 
-        
-        
+    app.post('/listar-grupo-produtos', async (req, res) => {
+        try {
+            const { categorias } = req.body;
+            const sort = req.query.sort;
+
+            if (!categorias || !Array.isArray(categorias) || categorias.length === 0) {
+                return res.status(400).json({ message: 'É necessário fornecer uma lista de categorias.' });
+            }
+
+            const categoriaBusca = { categoria: { $in: categorias.map(cat => new RegExp(cat, 'i')) } };
+
+            let sortOption = {};
+            if (sort) {
+                const sortOrder = sort.startsWith('-') ? -1 : 1;
+                const sortField = sort.replace('-', '');
+                sortOption = { [sortField]: sortOrder };
+            }
+
+            const produtos = await Product.find(categoriaBusca).sort(sortOption);
+
+            res.status(200).json(produtos);
+        } catch (error) {
+            console.error('Erro ao realizar a busca:', error);
+            res.status(500).json({ message: 'Erro no servidor' });
+        }
     });
 
 }
