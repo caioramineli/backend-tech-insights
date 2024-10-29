@@ -4,13 +4,13 @@ const upload = require('../config/multer');
 
 function productController(app) {
     app.post("/product/create", upload.array("images", 5), async (req, res) => {
-        if (!req.files || req.files.length < 4 || req.files.length > 5) {
+        if (!req.files || req.files.length < 1 || req.files.length > 5) {
             if (req.files) {
                 req.files.forEach(file => fs.unlink(file.path, err => {
                     if (err) console.error(`Erro ao deletar o arquivo: ${file.path}`);
                 }));
             }
-            return res.status(400).json({ msg: "São necessárias 4 ou 5 imagens" });
+            return res.status(400).json({ msg: "É necessário enviar de 1 a 5 imagens" });
         }
 
         const {
@@ -148,14 +148,37 @@ function productController(app) {
         }
     });
 
+    app.get('/produtos/categoria/:categoria', async (req, res) => {
+        try {
+            const { categoria } = req.params;
+            const sort = req.query.sort;
+
+            const categoriaBusca = { categoria: { $regex: new RegExp(categoria, 'i') } };
+
+            let sortOption = {};
+            if (sort) {
+                const sortOrder = sort.startsWith('-') ? -1 : 1;
+                const sortField = sort.replace('-', '');
+                sortOption = { [sortField]: sortOrder };
+            }
+
+            const produtos = await Product.find(categoriaBusca).sort(sortOption);
+
+            res.status(200).json(produtos);
+        } catch (error) {
+            console.error('Erro ao realizar a busca:', error);
+            res.status(500).json({ message: 'Erro no servidor' });
+        }
+    });
+
     app.get("/productHome", async (req, res) => {
         try {
-            const { limite } = req.query;
+            const { divisao } = req.query;
 
             const allProducts = await Product.find();
 
-            const primeiraParte = allProducts.slice(0, limite);
-            const segundaParte = allProducts.slice(limite);
+            const primeiraParte = allProducts.slice(0, divisao);
+            const segundaParte = allProducts.slice(divisao);
 
             if (allProducts.length === 0) {
                 return res.status(404).json({ msg: "Nenhum produto encontrado!" });
@@ -168,6 +191,33 @@ function productController(app) {
         } catch (error) {
             console.error(error);
             res.status(500).json({ msg: "Erro no servidor!" });
+        }
+    });
+
+    app.post('/listar-grupo-produtos', async (req, res) => {
+        try {
+            const { categorias } = req.body;
+            const sort = req.query.sort;
+
+            if (!categorias || !Array.isArray(categorias) || categorias.length === 0) {
+                return res.status(400).json({ message: 'É necessário fornecer uma lista de categorias.' });
+            }
+
+            const categoriaBusca = { categoria: { $in: categorias.map(cat => new RegExp(cat, 'i')) } };
+
+            let sortOption = {};
+            if (sort) {
+                const sortOrder = sort.startsWith('-') ? -1 : 1;
+                const sortField = sort.replace('-', '');
+                sortOption = { [sortField]: sortOrder };
+            }
+
+            const produtos = await Product.find(categoriaBusca).sort(sortOption);
+
+            res.status(200).json(produtos);
+        } catch (error) {
+            console.error('Erro ao realizar a busca:', error);
+            res.status(500).json({ message: 'Erro no servidor' });
         }
     });
 
