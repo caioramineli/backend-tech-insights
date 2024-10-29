@@ -56,7 +56,8 @@ function orderController(app) {
                     path: 'produtos.idProduto',
                     select: 'nome precoPrazo preco marca images'
                 })
-                .select('frete numeroPedido data produtos idEndereco formaPagamento desconto valorTotal');
+                .select('frete numeroPedido data produtos idEndereco formaPagamento desconto valorTotal')
+                .sort({ data: -1 });
 
             const pedidosOrganizados = pedidos.map(pedido => ({
                 ...pedido.toObject(),
