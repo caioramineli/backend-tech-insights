@@ -5,7 +5,7 @@ const Cupon = require('../models/Cupon')
 function orderController(app) {
 
     app.post('/order', async (req, res) => {
-        const { idUser, produtos, idEndereco, formaPagamento, desconto, frete, valorTotal, codigoCupom } = req.body;
+        const { idUser, produtos, idEndereco, formaPagamento, desconto, frete, valorTotal, codigoCupom, status } = req.body;
         const numeroPedido = Math.floor(Math.random() * 1000000);
 
         try {
@@ -18,7 +18,8 @@ function orderController(app) {
                 desconto,
                 frete,
                 valorTotal,
-                data: new Date()
+                data: new Date(),
+                status
             });
 
             await order.save();
@@ -56,7 +57,7 @@ function orderController(app) {
                     path: 'produtos.idProduto',
                     select: 'nome precoPrazo preco marca images'
                 })
-                .select('frete numeroPedido data produtos idEndereco formaPagamento desconto valorTotal')
+                .select('numeroPedido valorTotal desconto formaPagamento frete data idEndereco status produtos')
                 .sort({ data: -1 });
 
             const pedidosOrganizados = pedidos.map(pedido => ({
@@ -90,7 +91,7 @@ function orderController(app) {
                     path: 'produtos.idProduto',
                     select: 'nome precoPrazo preco marca images'
                 })
-                .select('frete numeroPedido data produtos idEndereco formaPagamento desconto valorTotal');
+                .select('numeroPedido valorTotal desconto formaPagamento frete data idEndereco status produtos');
 
             if (!pedido) {
                 return res.status(404).json({ msg: 'Pedido não encontrado!' });

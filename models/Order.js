@@ -31,6 +31,7 @@ const Order = mongoose.model('Order', {
         valor: Number
     },
     valorTotal: Number,
+    status: String,
 });
 
 module.exports = Order;
