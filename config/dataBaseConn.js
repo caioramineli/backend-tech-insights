@@ -2,10 +2,13 @@ const mongoose = require('mongoose');
 
 const connectMongo = process.env.MONGODB_CONNECT_URI;
 
-function initializeDatabase() {
-    mongoose.connect(connectMongo).then(() => {
+async function initializeDatabase() {
+    try {
+        await mongoose.connect(connectMongo);
         console.log("Conectou!");
-    }).catch((err) => console.log(err));
+    } catch (err) {
+        console.error("Erro ao conectar ao MongoDB:", err);
+    }
 }
 
 module.exports = { initializeDatabase };
