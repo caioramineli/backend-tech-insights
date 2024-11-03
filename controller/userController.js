@@ -1,5 +1,7 @@
 const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
+const checkPermision = require('../config/checkPermision');
+const jwt = require('jsonwebtoken');
+const { Resend } = require('resend');
 
 const User = require('../models/User')
 
@@ -8,8 +10,7 @@ function userController(app) {
         res.status(200).json({ msg: "Bem vindo!" });
     });
 
-    // Private Route
-    app.get("/user/:id", checkToken, async (req, res) => {
+    app.get("/user/:id", checkPermision('normal'), async (req, res) => {
         const id = req.params.id
 
         const user = await User.findById(id, '-senha')
@@ -20,26 +21,6 @@ function userController(app) {
 
         res.status(200).json({ user })
     })
-
-    function checkToken(req, res, next) {
-        const authHeader = req.headers['authorization']
-        const token = authHeader && authHeader.split(' ')[1]
-
-        if (!token) {
-            return res.status(401).json({ msg: "Acesso negado!" })
-        }
-
-        try {
-            const secret = process.env.SECRET
-
-            jwt.verify(token, secret)
-
-            next()
-
-        } catch (error) {
-            res.status(400).json({ msg: "Token inválido!" })
-        }
-    }
 
     app.post('/register', async (req, res) => {
         const { nome, cpf, dataNascimento, telefone, email, senha } = req.body
@@ -97,7 +78,7 @@ function userController(app) {
         }
     })
 
-    app.put('/user/:id', async (req, res) => {
+    app.put('/user/:id', checkPermision('normal'), async (req, res) => {
         const { id } = req.params;
         const { nome, dataNascimento, telefone, email } = req.body
 
@@ -122,7 +103,7 @@ function userController(app) {
         }
     })
 
-    app.put('/user/:id/password', async (req, res) => {
+    app.put('/user/:id/password', checkPermision('normal'), async (req, res) => {
         const { id } = req.params;
         const { senha, novaSenha } = req.body
 
@@ -177,15 +158,19 @@ function userController(app) {
         }
 
         try {
+            const roleType = user.email.endsWith(process.env.ADMIN_EMAILS) ? 'adm' : 'normal';
+
             const secret = process.env.SECRET;
             const token = jwt.sign(
                 {
                     id: user._id,
                     nome: user.nome,
                     email: user.email,
-                    cpf: user.cpf
+                    cpf: user.cpf,
+                    role: roleType
                 },
                 secret,
+                { expiresIn: '7d' }
             );
 
             res.status(200).json({ msg: 'Autenticação realizada com sucesso!', token });
@@ -196,7 +181,7 @@ function userController(app) {
         }
     });
 
-    app.post('/user/:id/endereco', async (req, res) => {
+    app.post('/user/:id/endereco', checkPermision('normal'), async (req, res) => {
         const { id } = req.params;
         const novoEndereco = req.body;
 
@@ -216,7 +201,7 @@ function userController(app) {
         }
     });
 
-    app.get('/user/:id/endereco', async (req, res) => {
+    app.get('/user/:id/endereco', checkPermision('normal'), async (req, res) => {
         const { id } = req.params;
 
         try {
@@ -233,7 +218,7 @@ function userController(app) {
         }
     });
 
-    app.put('/user/:id/endereco/:idEndereco', async (req, res) => {
+    app.put('/user/:id/endereco/:idEndereco', checkPermision('normal'), async (req, res) => {
         const { id, idEndereco } = req.params;
         const { nome, cep, rua, numero, complemento, bairro, cidade, estado } = req.body;
 
@@ -269,7 +254,7 @@ function userController(app) {
     });
 
 
-    app.delete('/user/:id/endereco/:enderecoId', async (req, res) => {
+    app.delete('/user/:id/endereco/:enderecoId', checkPermision('normal'), async (req, res) => {
         const { id, enderecoId } = req.params;
 
         try {
@@ -290,7 +275,7 @@ function userController(app) {
         }
     });
 
-    app.post('/user/:id/favorito/:idProduto', async (req, res) => {
+    app.post('/user/:id/favorito/:idProduto', checkPermision('normal'), async (req, res) => {
         const { id, idProduto } = req.params;
 
         try {
@@ -331,6 +316,50 @@ function userController(app) {
         } catch (error) {
             console.log(error);
             res.status(500).json({ msg: 'Erro ao buscar os favoritos!' });
+        }
+    });
+
+    function gerarSenhaAleatoria() {
+        const caracteres = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        let senha = '';
+        for (let i = 0; i < 5; i++) {
+            senha += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+        }
+        return senha;
+    }
+
+    app.post('/recuperar-senha', async (req, res) => {
+        const { email } = req.body;
+
+        try {
+            const resend = new Resend(process.env.TOKEN_RESEND);
+
+            const user = await User.findOne({ email: email });
+
+            if (!user) {
+                return res.status(404).json({ msg: 'Usuário não encontrado!' });
+            }
+
+            const novaSenha = gerarSenhaAleatoria();
+
+            user.senha = await bcrypt.hash(novaSenha, 12);
+
+            await user.save();
+
+            const { data, error } = await resend.emails.send({
+                from: process.env.EMAIL_ENVIO,
+                to: email,
+                subject: 'Senha temporária',
+                html: `<html><head><style>body {font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;} .container {max-width: 800px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); overflow: hidden; border: 1px solid gray;} .header {background-color: #059669; color: #ffffff; text-align: center; padding: 0.5rem;} .content {padding: 10px 2rem; line-height: 1.5; color: #333333;} #senha {color: #059669; font-weight: bold;} .footer {text-align: center; padding: 1rem; background-color: #f4f4f4; font-size: 0.9rem; color: #777777;}</style></head><body><div class="container"><div class="header"><h1>Senha temporária</h1></div><div class="content"><p>Olá,</p><p>Recebemos uma solicitação para redefinir a sua senha.</p><p>Essa aqui é uma senha temporária para você utilizar: <span id="senha">${novaSenha}</span></p><p>Obrigado,<br>Equipe Tech Insights</p></div><div class="footer"><p>Se você tiver alguma dúvida, entre em contato conosco. Este é um e-mail automático, por favor, não responda diretamente.</p></div></div></body></html>`,
+            });
+
+            if (error) {
+                return res.status(500).json({ message: 'Erro ao enviar o e-mail', error });
+            }
+
+            res.status(200).json({ message: 'E-mail enviado com sucesso!', data });
+        } catch (err) {
+            res.status(500).json({ message: 'Erro interno do servidor', error: err.message });
         }
     });
 }

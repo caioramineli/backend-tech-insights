@@ -1,8 +1,9 @@
 const Cupon = require('../models/Cupon')
+const checkPermision = require('../config/checkPermision');
 
 function cuponController(app) {
 
-    app.post('/cupon/create', async (req, res) => {
+    app.post('/cupon/create', checkPermision('adm'), async (req, res) => {
         const { codigo, descricao, tipo, valor, valorMinimoDoCarrinho, quantidade, validade } = req.body;
 
         try {

@@ -1,10 +1,11 @@
 const Order = require('../models/Order')
 const User = require('../models/User')
 const Cupon = require('../models/Cupon')
+const checkPermision = require('../config/checkPermision');
 
 function orderController(app) {
 
-    app.post('/order', async (req, res) => {
+    app.post('/order', checkPermision('normal'), async (req, res) => {
         const { idUser, produtos, idEndereco, formaPagamento, desconto, frete, valorTotal, codigoCupom, status } = req.body;
         const numeroPedido = Math.floor(Math.random() * 1000000);
 
@@ -42,7 +43,7 @@ function orderController(app) {
     });
 
 
-    app.get('/user/:id/orders', async (req, res) => {
+    app.get('/user/:id/orders', checkPermision('normal'), async (req, res) => {
         const { id } = req.params;
 
         try {
@@ -76,7 +77,7 @@ function orderController(app) {
         }
     });
 
-    app.get('/user/:id/orders/:orderId', async (req, res) => {
+    app.get('/user/:id/orders/:orderId', checkPermision('normal'), async (req, res) => {
         const { id, orderId } = req.params;
 
         try {

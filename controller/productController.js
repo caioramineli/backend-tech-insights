@@ -1,9 +1,10 @@
 const fs = require("fs");
 const Product = require('../models/Product');
 const upload = require('../config/multer');
+const checkPermision = require('../config/checkPermision');
 
 function productController(app) {
-    app.post("/product/create", upload.array("images", 5), async (req, res) => {
+    app.post("/product/create", upload.array("images", 5), checkPermision('adm'), async (req, res) => {
         if (!req.files || req.files.length < 1 || req.files.length > 5) {
             if (req.files) {
                 req.files.forEach(file => fs.unlink(file.path, err => {
@@ -117,11 +118,10 @@ function productController(app) {
         }
     });
 
-    app.post("/product/favoritos", async (req, res) => {
+    app.post("/product/favoritos", checkPermision('normal'), async (req, res) => {
         const favoritos = req.body
 
         try {
-
             const products = await Product.find({ _id: { $in: favoritos } });
             if (products.length === 0) {
                 return res.status(404).json({ msg: "Nenhum produto encontrado!" });
