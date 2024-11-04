@@ -350,7 +350,75 @@ function userController(app) {
                 from: process.env.EMAIL_ENVIO,
                 to: email,
                 subject: 'Senha temporária',
-                html: `<html><head><style>body {font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;} .container {max-width: 800px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); overflow: hidden; border: 1px solid gray;} .header {background-color: #059669; color: #ffffff; text-align: center; padding: 0.5rem;} .content {padding: 10px 2rem; line-height: 1.5; color: #333333;} #senha {color: #059669; font-weight: bold;} .footer {text-align: center; padding: 1rem; background-color: #f4f4f4; font-size: 0.9rem; color: #777777;}</style></head><body><div class="container"><div class="header"><h1>Senha temporária</h1></div><div class="content"><p>Olá,</p><p>Recebemos uma solicitação para redefinir a sua senha.</p><p>Essa aqui é uma senha temporária para você utilizar: <span id="senha">${novaSenha}</span></p><p>Obrigado,<br>Equipe Tech Insights</p></div><div class="footer"><p>Se você tiver alguma dúvida, entre em contato conosco. Este é um e-mail automático, por favor, não responda diretamente.</p></div></div></body></html>`,
+                html: `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                    <style>
+                        body {
+                        font-family: Arial, sans-serif;
+                        background-color: #f4f4f4;
+                        margin: 0;
+                        padding: 0;
+                        }
+
+                        .container {
+                        max-width: 800px;
+                        margin: 40px auto;
+                        background-color: #ffffff;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                        overflow: hidden;
+                        border: 1px solid gray;
+                        }
+
+                        .header {
+                        background-color: #059669;
+                        color: #ffffff;
+                        text-align: center;
+                        padding: 0.5rem;
+                        font-size: 1rem;
+                        }
+
+                        .content {
+                        padding: 10px 2rem;
+                        line-height: 1.5;
+                        color: #333333;
+                        font-size: 0.9rem;
+                        }
+
+                        #senha {
+                        color: #059669;
+                        font-weight: bold;
+                        }
+
+                        .footer {
+                        text-align: center;
+                        padding: 1rem;
+                        background-color: #f4f4f4;
+                        font-size: 0.9rem;
+                        color: #777777;
+                        }
+                    </style>
+                    </head>
+                    <body>
+                    <div class="container">
+                        <div class="header">
+                        <h1>Senha temporária</h1>
+                        </div>
+                        <div class="content">
+                        <p>Olá,</p>
+                        <p>Recebemos uma solicitação para redefinir a sua senha.</p>
+                        <p>Essa aqui é uma senha temporária para você utilizar: <span id="senha">\${novaSenha}</span></p>
+                        <p>Obrigado,<br>Equipe Tech Insights</p>
+                        </div>
+                        <div class="footer">
+                        <p>Se você tiver alguma dúvida, entre em contato conosco. Este é um e-mail automático, por favor, não responda diretamente.</p>
+                        </div>
+                    </div>
+                    </body>
+                    </html>
+                    `,
             });
 
             if (error) {
