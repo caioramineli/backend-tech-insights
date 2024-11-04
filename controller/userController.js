@@ -371,7 +371,7 @@ function userController(app) {
                         overflow: hidden;
                         border: 1px solid gray;
                         }
-
+                        
                         .header {
                         background-color: #059669;
                         color: #ffffff;
@@ -409,7 +409,7 @@ function userController(app) {
                         <div class="content">
                         <p>Olá,</p>
                         <p>Recebemos uma solicitação para redefinir a sua senha.</p>
-                        <p>Essa aqui é uma senha temporária para você utilizar: <span id="senha">\${novaSenha}</span></p>
+                        <p>Essa aqui é uma senha temporária para você utilizar: <span id="senha">${novaSenha}</span></p>
                         <p>Obrigado,<br>Equipe Tech Insights</p>
                         </div>
                         <div class="footer">
