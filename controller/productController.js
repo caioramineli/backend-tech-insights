@@ -175,14 +175,22 @@ function productController(app) {
         try {
             const { divisao } = req.query;
 
-            const allProducts = await Product.find();
-
-            const primeiraParte = allProducts.slice(0, divisao);
-            const segundaParte = allProducts.slice(divisao);
+            const allProducts = await Product.find().select('_id nome precoPrazo preco images').lean();
 
             if (allProducts.length === 0) {
                 return res.status(404).json({ msg: "Nenhum produto encontrado!" });
             }
+
+            const formattedProducts = allProducts.map(product => ({
+                _id: product._id,
+                nome: product.nome,
+                precoPrazo: product.precoPrazo,
+                preco: product.preco,
+                img: product.images[0]
+            }));
+
+            const primeiraParte = formattedProducts.slice(0, divisao);
+            const segundaParte = formattedProducts.slice(divisao);
 
             res.status(200).json({
                 primeirosProdutos: primeiraParte,
