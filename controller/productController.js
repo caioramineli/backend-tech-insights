@@ -72,10 +72,20 @@ function productController(app) {
 
     app.get("/product", async (req, res) => {
         try {
-            const products = await Product.find();
-            if (products.length === 0) {
+            const allProducts = await Product.find().select('_id nome precoPrazo preco images').lean();
+
+            if (allProducts.length === 0) {
                 return res.status(404).json({ msg: "Nenhum produto encontrado!" });
             }
+
+            const products = allProducts.map(product => ({
+                _id: product._id,
+                nome: product.nome,
+                precoPrazo: product.precoPrazo,
+                preco: product.preco,
+                img: product.images[0]
+            }));
+
             res.status(200).json({ products });
         } catch (error) {
             console.error(error);
