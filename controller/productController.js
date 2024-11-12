@@ -4,7 +4,7 @@ const upload = require('../config/multer');
 const checkPermision = require('../config/checkPermision');
 
 function productController(app) {
-    app.post("/product/create", upload.array("images", 5), checkPermision('adm'), async (req, res) => {
+    app.post("/criar-produto", upload.array("images", 5), checkPermision('adm'), async (req, res) => {
         if (!req.files || req.files.length < 1 || req.files.length > 5) {
             if (req.files) {
                 req.files.forEach(file => fs.unlink(file.path, err => {
@@ -55,7 +55,7 @@ function productController(app) {
         }
     });
 
-    app.get("/product/:id", async (req, res) => {
+    app.get("/listar-produto/:id", async (req, res) => {
         const id = req.params.id;
 
         try {
@@ -70,23 +70,18 @@ function productController(app) {
         }
     });
 
-    app.get("/product", async (req, res) => {
+    app.get("/listar-produtos", async (req, res) => {
         try {
-            const allProducts = await Product.find().select('_id nome precoPrazo preco images').lean();
+            const produtos = await Product.find()
+                .select('_id nome precoPrazo preco images')
+                .slice('images', 1)
+                .lean();
 
-            if (allProducts.length === 0) {
+            if (produtos.length === 0) {
                 return res.status(404).json({ msg: "Nenhum produto encontrado!" });
             }
 
-            const products = allProducts.map(product => ({
-                _id: product._id,
-                nome: product.nome,
-                precoPrazo: product.precoPrazo,
-                preco: product.preco,
-                img: product.images[0]
-            }));
-
-            res.status(200).json({ products });
+            res.status(200).json({ produtos });
         } catch (error) {
             console.error(error);
             res.status(500).json({ msg: "Erro no servidor!" });
@@ -94,7 +89,7 @@ function productController(app) {
     });
 
     // Pesquisa produtos pelo nome, categoria ou marca e ordena se necessário.
-    app.get('/products/search', async (req, res) => {
+    app.get('/buscar-produtos', async (req, res) => {
         try {
             const query = req.query.q;  // Captura a string de consulta (ex: /products/search?q=nome)
             const sort = req.query.sort; // Captura o parâmetro de ordenação (ex: /products/search?q=nome&sort=nome)
@@ -111,7 +106,6 @@ function productController(app) {
                 ]
             };
 
-
             let sortOption = {};
             if (sort) {
                 const sortOrder = sort.startsWith('-') ? -1 : 1;
@@ -119,7 +113,11 @@ function productController(app) {
                 sortOption = { [sortField]: sortOrder };
             }
 
-            const results = await Product.find(searchCriterio).sort(sortOption);
+            const results = await Product.find(searchCriterio)
+                .select('_id nome precoPrazo preco images')
+                .slice('images', 1)
+                .sort(sortOption)
+                .lean();
 
             res.json(results);
         } catch (error) {
@@ -128,28 +126,36 @@ function productController(app) {
         }
     });
 
-    app.post("/product/favoritos", checkPermision('normal'), async (req, res) => {
+    app.post("/listar-favoritos", checkPermision('normal'), async (req, res) => {
         const favoritos = req.body
 
         try {
-            const products = await Product.find({ _id: { $in: favoritos } });
-            if (products.length === 0) {
+            const produtos = await Product.find({ _id: { $in: favoritos } })
+                .select('_id nome precoPrazo preco images')
+                .slice('images', 1)
+                .lean();
+
+            if (produtos.length === 0) {
                 return res.status(404).json({ msg: "Nenhum produto encontrado!" });
             }
-            res.status(200).json({ products });
+
+            res.status(200).json({ produtos });
         } catch (error) {
             console.error(error);
             res.status(500).json({ msg: "Erro no servidor!" });
         }
     });
 
-    app.get('/produtos/:marca', async (req, res) => {
+    app.get('/listar-produtos-por-marca/:marca', async (req, res) => {
         try {
             const { marca } = req.params;
 
             const marcaBusca = { marca: { $regex: new RegExp(marca, 'i') } };
 
-            const produtos = await Product.find(marcaBusca);
+            const produtos = await Product.find(marcaBusca)
+                .select('_id nome precoPrazo preco images')
+                .slice('images', 1)
+                .lean();
 
             res.status(200).json(produtos);
         } catch (error) {
@@ -158,7 +164,7 @@ function productController(app) {
         }
     });
 
-    app.get('/produtos/categoria/:categoria', async (req, res) => {
+    app.get('/listar-produtos-por-categoria/:categoria', async (req, res) => {
         try {
             const { categoria } = req.params;
             const sort = req.query.sort;
@@ -172,7 +178,11 @@ function productController(app) {
                 sortOption = { [sortField]: sortOrder };
             }
 
-            const produtos = await Product.find(categoriaBusca).sort(sortOption);
+            const produtos = await Product.find(categoriaBusca)
+                .select('_id nome precoPrazo preco images')
+                .slice('images', 1)
+                .sort(sortOption)
+                .lean();
 
             res.status(200).json(produtos);
         } catch (error) {
@@ -181,26 +191,21 @@ function productController(app) {
         }
     });
 
-    app.get("/productHome", async (req, res) => {
+    app.get("/listar-produtos-home", async (req, res) => {
         try {
             const { divisao } = req.query;
 
-            const allProducts = await Product.find().select('_id nome precoPrazo preco images').lean();
+            const produtos = await Product.find()
+                .select('_id nome precoPrazo preco images')
+                .slice('images', 1)
+                .lean();
 
-            if (allProducts.length === 0) {
+            if (produtos.length === 0) {
                 return res.status(404).json({ msg: "Nenhum produto encontrado!" });
             }
 
-            const formattedProducts = allProducts.map(product => ({
-                _id: product._id,
-                nome: product.nome,
-                precoPrazo: product.precoPrazo,
-                preco: product.preco,
-                img: product.images[0]
-            }));
-
-            const primeiraParte = formattedProducts.slice(0, divisao);
-            const segundaParte = formattedProducts.slice(divisao);
+            const primeiraParte = produtos.slice(0, divisao);
+            const segundaParte = produtos.slice(divisao);
 
             res.status(200).json({
                 primeirosProdutos: primeiraParte,
@@ -217,7 +222,7 @@ function productController(app) {
             const { categorias } = req.body;
             const sort = req.query.sort;
 
-            if (!categorias || !Array.isArray(categorias) || categorias.length === 0) {
+            if (!categorias || categorias.length === 0) {
                 return res.status(400).json({ message: 'É necessário fornecer uma lista de categorias.' });
             }
 
@@ -230,7 +235,11 @@ function productController(app) {
                 sortOption = { [sortField]: sortOrder };
             }
 
-            const produtos = await Product.find(categoriaBusca).sort(sortOption);
+            const produtos = await Product.find(categoriaBusca)
+                .select('_id nome precoPrazo preco images')
+                .slice('images', 1)
+                .sort(sortOption)
+                .lean();
 
             res.status(200).json(produtos);
         } catch (error) {
