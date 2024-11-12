@@ -1,12 +1,22 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
-const Order = mongoose.model('Order', {
-    data: Date,
-    numeroPedido: Number,
+const orderSchema = new mongoose.Schema({
+    data: {
+        type: Date,
+        default: Date.now,
+        index: true
+    },
+    numeroPedido: {
+        type: Number,
+        required: true,
+        unique: true,
+        index: true
+    },
     idUser: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: true,
+        index: true
     },
     produtos: [{
         idProduto: {
@@ -21,17 +31,40 @@ const Order = mongoose.model('Order', {
         _id: false
     }],
     idEndereco: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         required: true
     },
-    formaPagamento: String,
-    desconto: Number,
-    frete: {
-        tipo: String,
-        valor: Number
+    formaPagamento: {
+        type: String,
+        required: true
     },
-    valorTotal: Number,
-    status: String,
+    desconto: {
+        type: Number,
+        default: 0
+    },
+    frete: {
+        tipo: {
+            type: String,
+            required: true
+        },
+        valor: {
+            type: Number,
+            required: true,
+            default: 0
+        }
+    },
+    valorTotal: {
+        type: Number,
+        required: true
+    },
+    status: {
+        type: String,
+        default: 'Pendente'
+    }
 });
 
+
+orderSchema.index({ idUser: 1, data: -1 });
+
+const Order = mongoose.model('Order', orderSchema);
 module.exports = Order;

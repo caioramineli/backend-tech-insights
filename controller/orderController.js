@@ -54,11 +54,12 @@ function orderController(app) {
 
             const pedidos = await Order.find({ idUser: id })
                 .sort({ data: -1 })
+                .select('numeroPedido valorTotal formaPagamento frete data idEndereco status produtos')
                 .populate({
                     path: 'produtos.idProduto',
-                    select: 'nome images'
+                    select: 'nome images',
+                    options: { lean: true }
                 })
-                .select('numeroPedido valorTotal formaPagamento frete data idEndereco status produtos')
                 .lean();
 
             if (!pedidos || pedidos.length === 0) {
@@ -137,11 +138,12 @@ function orderController(app) {
 
             const pedido = await Order.findOne({ idUser: id })
                 .sort({ data: -1 })
+                .select('numeroPedido valorTotal formaPagamento frete data idEndereco status produtos')
                 .populate({
                     path: 'produtos.idProduto',
-                    select: 'nome images'
+                    select: 'nome images',
+                    options: { lean: true }
                 })
-                .select('numeroPedido valorTotal formaPagamento frete data idEndereco status produtos')
                 .lean();
 
             if (!pedido) {
