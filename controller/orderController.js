@@ -58,7 +58,8 @@ function orderController(app) {
                     path: 'produtos.idProduto',
                     select: 'nome images'
                 })
-                .select('numeroPedido valorTotal formaPagamento frete data idEndereco status produtos');
+                .select('numeroPedido valorTotal formaPagamento frete data idEndereco status produtos')
+                .lean();
 
             if (!pedidos || pedidos.length === 0) {
                 return res.status(404).json({ msg: 'Nenhum pedido encontrado!' });
@@ -140,7 +141,8 @@ function orderController(app) {
                     path: 'produtos.idProduto',
                     select: 'nome images'
                 })
-                .select('numeroPedido valorTotal formaPagamento frete data idEndereco status produtos');
+                .select('numeroPedido valorTotal formaPagamento frete data idEndereco status produtos')
+                .lean();
 
             if (!pedido) {
                 return res.status(404).json({ msg: 'Pedido não encontrado!' });
