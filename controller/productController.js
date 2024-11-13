@@ -1,6 +1,7 @@
 const fs = require("fs");
 const Product = require('../models/Product');
 const upload = require('../config/multer');
+const createAccentInsensitiveRegex = require('../utils/addAccent');
 const checkPermision = require('../config/checkPermision');
 
 function productController(app) {
@@ -91,18 +92,20 @@ function productController(app) {
     // Pesquisa produtos pelo nome, categoria ou marca e ordena se necessário.
     app.get('/buscar-produtos', async (req, res) => {
         try {
-            const query = req.query.q;  // Captura a string de consulta (ex: /products/search?q=nome)
-            const sort = req.query.sort; // Captura o parâmetro de ordenação (ex: /products/search?q=nome&sort=nome)
+            const query = req.query.q; // Captura a string de consulta
+            const sort = req.query.sort;
 
             if (!query) {
                 return res.status(400).json({ message: 'Parâmetro de consulta não fornecido' });
             }
 
+            const regex = createAccentInsensitiveRegex(query);
+
             const searchCriterio = {
                 $or: [
-                    { nome: { $regex: new RegExp(query, 'i') } },
-                    { categoria: { $regex: new RegExp(query, 'i') } },
-                    { marca: { $regex: new RegExp(query, 'i') } }
+                    { nome: { $regex: regex } },
+                    { categoria: { $regex: regex } },
+                    { marca: { $regex: regex } }
                 ]
             };
 
