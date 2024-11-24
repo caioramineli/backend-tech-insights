@@ -92,7 +92,7 @@ function productController(app) {
     // Pesquisa produtos pelo nome, categoria ou marca e ordena se necessário.
     app.get('/buscar-produtos', async (req, res) => {
         try {
-            const query = req.query.q; // Captura a string de consulta
+            const query = req.query.q;
             const sort = req.query.sort;
 
             if (!query) {
@@ -247,6 +247,57 @@ function productController(app) {
             res.status(200).json(produtos);
         } catch (error) {
             console.error('Erro ao realizar a busca:', error);
+            res.status(500).json({ message: 'Erro no servidor' });
+        }
+    });
+
+    app.get('/admin-buscar-produtos', checkPermision('adm'), async (req, res) => {
+        try {
+            const { query, sort } = req.query;
+
+            // Valida 'query' para evitar problemas com $regex
+            const queryString = typeof query === 'string' ? query : null;
+
+            let searchCriterio = {}; // Critério vazio se query não existir
+            if (queryString) {
+                const regex = createAccentInsensitiveRegex(queryString);
+
+                searchCriterio = {
+                    $or: [
+                        { nome: { $regex: regex } },
+                        { descricao: { $regex: regex } },
+                        { marca: { $regex: regex } },
+                        { categoria: { $regex: regex } },
+                        { especificacoes: { $regex: regex } },
+                    ],
+                };
+            }
+
+            // Configuração de ordenação
+            let sortOption = {};
+            if (sort) {
+                const sortOrder = sort.startsWith('-') ? -1 : 1;
+                const sortField = sort.replace('-', '');
+
+                if (sortField === 'nome') {
+                    sortOption = { nome: sortOrder };
+                } else if (sortField === 'valor') {
+                    sortOption = { preco: sortOrder };
+                } else {
+                    sortOption = { [sortField]: sortOrder };
+                }
+            }
+
+            // Busca de produtos
+            const produtos = await Product.find(searchCriterio).sort(sortOption).lean();
+
+            if (!produtos || produtos.length === 0) {
+                return res.status(404).json({ msg: 'Nenhum produto encontrado!' });
+            }
+
+            res.status(200).json(produtos);
+        } catch (error) {
+            console.error('Erro ao realizar a busca de produtos:', error);
             res.status(500).json({ message: 'Erro no servidor' });
         }
     });

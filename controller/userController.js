@@ -170,7 +170,7 @@ function userController(app) {
                     role: roleType
                 },
                 secret,
-                { expiresIn: '7d' }
+                { expiresIn: '30d' }
             );
 
             res.status(200).json({ msg: 'Autenticação realizada com sucesso!', token });
