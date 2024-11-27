@@ -7,7 +7,7 @@ const User = require('../models/User')
 
 function userController(app) {
     app.get('/', (req, res) => {
-        res.status(200).json({ msg: "Bem vindo!" });
+        res.status(200).json({ msg: "Bem vindo a API do Tech Insights!" });
     });
 
     app.get("/user/:id", checkPermision('normal'), async (req, res) => {
@@ -50,10 +50,16 @@ function userController(app) {
             return res.status(422).json({ msg: "A senha é obrigatório!" })
         }
 
-        const userExists = await User.findOne({ email: email })
+        const emailExists = await User.findOne({ email: email })
 
-        if (userExists) {
+        if (emailExists) {
             return res.status(422).json({ msg: "E-mail já cadastrado!" })
+        }
+
+        const cpfExists = await User.findOne({ cpf: cpf })
+
+        if (cpfExists) {
+            return res.status(422).json({ msg: "CPF já cadastrado!" })
         }
 
         const salt = await bcrypt.genSalt(12)
@@ -131,11 +137,9 @@ function userController(app) {
         }
     })
 
-    //login
     app.post("/login", async (req, res) => {
         const { email, senha } = req.body;
 
-        // validações
         if (!email) {
             return res.status(422).json({ msg: "O email é obrigatório!" });
         }
@@ -144,7 +148,6 @@ function userController(app) {
             return res.status(422).json({ msg: "A senha é obrigatória!" });
         }
 
-        // checar se o usuario existe
         const user = await User.findOne({ email: email });
 
         if (!user) {

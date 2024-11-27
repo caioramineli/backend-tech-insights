@@ -1,10 +1,21 @@
 const Order = require('../models/Order')
 const User = require('../models/User')
 const Cupon = require('../models/Cupon')
-const createAccentInsensitiveRegex = require('../utils/addAccent');
+const Product = require('../models/Product')
 const checkPermision = require('../config/checkPermision');
 
 function orderController(app) {
+
+    const ajustarEstoque = async (produtosComprados) => {
+        for (const item of produtosComprados) {
+            const { idProduto, quantidade } = item;
+
+            await Product.findByIdAndUpdate(
+                idProduto,
+                { $inc: { estoque: -quantidade } }
+            );
+        }
+    };
 
     app.post('/order', checkPermision('normal'), async (req, res) => {
         const { idUser, produtos, idEndereco, formaPagamento, desconto, frete, valorTotal, codigoCupom, status } = req.body;
@@ -25,6 +36,8 @@ function orderController(app) {
             });
 
             await order.save();
+
+            await ajustarEstoque(produtos);
 
             let cupom = null;
             if (codigoCupom) {

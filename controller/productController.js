@@ -73,7 +73,7 @@ function productController(app) {
 
     app.get("/listar-produtos", async (req, res) => {
         try {
-            const produtos = await Product.find()
+            const produtos = await Product.find({ estoque: { $gte: 1 } })
                 .select('_id nome precoPrazo preco images')
                 .slice('images', 1)
                 .lean();
@@ -92,16 +92,21 @@ function productController(app) {
     // Pesquisa produtos pelo nome, categoria ou marca e ordena se necessário.
     app.get('/buscar-produtos', async (req, res) => {
         try {
-            const query = req.query.q;
-            const sort = req.query.sort;
+            const query = req.query.q;  // Parâmetro de consulta
+            const sort = req.query.sort;  // Parâmetro de ordenação
 
             if (!query) {
                 return res.status(400).json({ message: 'Parâmetro de consulta não fornecido' });
             }
 
+            const createAccentInsensitiveRegex = (text) => {
+                return new RegExp(text, 'i');
+            };
+
             const regex = createAccentInsensitiveRegex(query);
 
-            const searchCriterio = {
+            const filtro = {
+                estoque: { $gte: 1 },  // Filtro para garantir que o estoque seja maior ou igual a 1
                 $or: [
                     { nome: { $regex: regex } },
                     { categoria: { $regex: regex } },
@@ -116,7 +121,7 @@ function productController(app) {
                 sortOption = { [sortField]: sortOrder };
             }
 
-            const results = await Product.find(searchCriterio)
+            const results = await Product.find(filtro)
                 .select('_id nome precoPrazo preco images')
                 .slice('images', 1)
                 .sort(sortOption)
@@ -198,7 +203,7 @@ function productController(app) {
         try {
             const { divisao } = req.query;
 
-            const produtos = await Product.find()
+            const produtos = await Product.find({ estoque: { $gte: 1 } })
                 .select('_id nome precoPrazo preco images')
                 .slice('images', 1)
                 .lean();
@@ -299,6 +304,24 @@ function productController(app) {
         } catch (error) {
             console.error('Erro ao realizar a busca de produtos:', error);
             res.status(500).json({ message: 'Erro no servidor' });
+        }
+    });
+
+    app.put('/adicionar-estoque', async (req, res) => {
+        try {
+            // Atualiza todos os produtos, incrementando o estoque em 10
+            const resultado = await Product.updateMany({}, { $inc: { estoque: 10 } });
+
+            res.status(200).json({
+                mensagem: 'Estoque incrementado com sucesso!',
+                atualizado: resultado.nModified,
+                totalAfetado: resultado.matchedCount,
+            });
+        } catch (error) {
+            res.status(500).json({
+                mensagem: 'Erro ao atualizar estoque.',
+                erro: error.message,
+            });
         }
     });
 
