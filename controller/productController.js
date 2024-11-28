@@ -106,7 +106,7 @@ function productController(app) {
             const regex = createAccentInsensitiveRegex(query);
 
             const filtro = {
-                estoque: { $gte: 1 },  // Filtro para garantir que o estoque seja maior ou igual a 1
+                estoque: { $gte: 1 },
                 $or: [
                     { nome: { $regex: regex } },
                     { categoria: { $regex: regex } },
@@ -158,7 +158,10 @@ function productController(app) {
         try {
             const { marca } = req.params;
 
-            const marcaBusca = { marca: { $regex: new RegExp(marca, 'i') } };
+            const marcaBusca = {
+                marca: { $regex: new RegExp(marca, 'i') },
+                estoque: { $gte: 1 }
+            };
 
             const produtos = await Product.find(marcaBusca)
                 .select('_id nome precoPrazo preco images')
@@ -177,7 +180,10 @@ function productController(app) {
             const { categoria } = req.params;
             const sort = req.query.sort;
 
-            const categoriaBusca = { categoria: { $regex: new RegExp(categoria, 'i') } };
+            const categoriaBusca = {
+                categoria: { $regex: new RegExp(categoria, 'i') },
+                estoque: { $gte: 1 }
+            };
 
             let sortOption = {};
             if (sort) {
@@ -260,10 +266,9 @@ function productController(app) {
         try {
             const { query, sort } = req.query;
 
-            // Valida 'query' para evitar problemas com $regex
             const queryString = typeof query === 'string' ? query : null;
 
-            let searchCriterio = {}; // Critério vazio se query não existir
+            let searchCriterio = {};
             if (queryString) {
                 const regex = createAccentInsensitiveRegex(queryString);
 
@@ -278,7 +283,6 @@ function productController(app) {
                 };
             }
 
-            // Configuração de ordenação
             let sortOption = {};
             if (sort) {
                 const sortOrder = sort.startsWith('-') ? -1 : 1;
@@ -293,7 +297,6 @@ function productController(app) {
                 }
             }
 
-            // Busca de produtos
             const produtos = await Product.find(searchCriterio).sort(sortOption).lean();
 
             if (!produtos || produtos.length === 0) {
@@ -309,7 +312,6 @@ function productController(app) {
 
     app.put('/adicionar-estoque', async (req, res) => {
         try {
-            // Atualiza todos os produtos, incrementando o estoque em 10
             const resultado = await Product.updateMany({}, { $inc: { estoque: 10 } });
 
             res.status(200).json({
