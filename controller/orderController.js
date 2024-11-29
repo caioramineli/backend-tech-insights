@@ -268,7 +268,7 @@ function orderController(app) {
 
             await pedido.save();
 
-            res.status(200).json(pedido);
+            res.status(200).json({ msg: 'Status do pedido atualizado com sucesso', pedido });
 
         } catch (error) {
             res.status(500).json({ msg: 'Erro ao alterar status!' });

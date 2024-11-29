@@ -9,6 +9,7 @@ const { productController } = require('./controller/productController')
 const { orderController } = require('./controller/orderController')
 const { cuponController } = require('./controller/cuponController')
 const { avaliacaoController } = require('./controller/avaliacaoController')
+const { movimentoEstoqueController } = require('./controller/MovimentoEstoqueController')
 
 const app = express()
 const port = process.env.PORT || 5000
@@ -26,6 +27,7 @@ productController(app)
 orderController(app)
 cuponController(app)
 avaliacaoController(app)
+movimentoEstoqueController(app)
 
 app.use('/imgs', express.static(path.join(__dirname, 'imgs')));
 

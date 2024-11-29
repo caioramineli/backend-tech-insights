@@ -15,7 +15,8 @@ const Product = mongoose.model('Product', {
         { type: String },
         { type: String }
     ],
-    estoque: { type: Number, required: true }
+    estoque: { type: Number, required: true },
+    status: { type: String, required: true }
 })
 
 module.exports = Product;
