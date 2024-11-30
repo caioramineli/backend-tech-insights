@@ -393,6 +393,7 @@ function userController(app) {
                         #senha {
                         color: #059669;
                         font-weight: bold;
+                        font-size: 1rem;
                         }
 
                         .footer {

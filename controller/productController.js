@@ -353,6 +353,7 @@ function productController(app) {
                         { marca: { $regex: regex } },
                         { categoria: { $regex: regex } },
                         { especificacoes: { $regex: regex } },
+                        { status: { $regex: regex } }
                     ],
                 };
             }
@@ -371,7 +372,10 @@ function productController(app) {
                 }
             }
 
-            const produtos = await Product.find(searchCriterio).sort(sortOption).lean();
+            const produtos = await Product.find(searchCriterio)
+                .collation({ locale: "pt", strength: 2 })
+                .sort(sortOption)
+                .lean();
 
             if (!produtos || produtos.length === 0) {
                 return res.status(404).json({ msg: 'Nenhum produto encontrado!' });

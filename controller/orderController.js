@@ -3,6 +3,7 @@ const User = require('../models/User')
 const Cupon = require('../models/Cupon')
 const Product = require('../models/Product')
 const checkPermision = require('../config/checkPermision');
+const axios = require('axios');
 
 function orderController(app) {
 
@@ -14,6 +15,24 @@ function orderController(app) {
                 idProduto,
                 { $inc: { estoque: -quantidade } }
             );
+        }
+    };
+
+    const msgPedidoRealizado = async (numeroCliente, numeroPedido, nomeCliente) => {
+        try {
+            const data = {
+                phone: "55" + numeroCliente,
+                flow: "674b931c3e201d0c84555d12",
+                metadata: {
+                    numeroPedido: numeroPedido,
+                    nome: nomeCliente
+                }
+            };
+
+            await axios.post(process.env.URL_IB, data)
+            console.log('Enviou mensagem');
+        } catch (error) {
+            console.log(error);
         }
     };
 
@@ -50,6 +69,11 @@ function orderController(app) {
             }
 
             res.status(201).json({ msg: 'Pedido realizado com sucesso!', order });
+
+            const user = await User.findById(idUser)
+
+            primeiroNome = user.nome.split(' ')[0];
+            msgPedidoRealizado(user.telefone, numeroPedido, primeiroNome);
         } catch (error) {
             console.log(error);
             res.status(500).json({ msg: "Erro ao realizar o pedido!" });
