@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const movimentoEstoqueSchema = new mongoose.Schema({
     produtoId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product', 
+        ref: 'Product',
         required: true
     },
     quantidade: {
@@ -17,6 +17,10 @@ const movimentoEstoqueSchema = new mongoose.Schema({
     usuario: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
+        required: true
+    },
+    origem: {
+        type: String,
         required: true
     }
 });

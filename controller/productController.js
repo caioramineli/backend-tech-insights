@@ -57,78 +57,72 @@ function productController(app) {
         }
     });
 
-    app.put(
-        "/atualizar-produto/:id",
-        upload.array("images", 5),
-        checkPermision("adm"),
-        async (req, res) => {
-            const { id } = req.params;
+    app.put("/atualizar-produto/:id", upload.array("images", 5), checkPermision("adm"), async (req, res) => {
+        const { id } = req.params;
 
-            const {
-                nome,
-                precoPrazo,
-                descricao,
-                especificacoes,
-                marca,
-                categoria,
-            } = req.body;
+        const {
+            nome,
+            precoPrazo,
+            descricao,
+            especificacoes,
+            marca,
+            categoria,
+        } = req.body;
 
-            if (!nome || !precoPrazo || !descricao || !especificacoes || !marca || !categoria) {
-                if (req.files) {
-                    req.files.forEach(file =>
-                        fs.unlink(file.path, err => {
-                            if (err) console.error(`Erro ao deletar o arquivo: ${file.path}`);
-                        })
-                    );
-                }
-                return res.status(400).json({ msg: "Todos os campos são obrigatórios." });
-            }
-
-            if (req.files && req.files.length > 5) {
+        if (!nome || !precoPrazo || !descricao || !especificacoes || !marca || !categoria) {
+            if (req.files) {
                 req.files.forEach(file =>
                     fs.unlink(file.path, err => {
                         if (err) console.error(`Erro ao deletar o arquivo: ${file.path}`);
                     })
                 );
-                return res.status(400).json({ msg: "É necessário enviar no máximo 5 imagens." });
             }
-
-            const newImgPaths = req.files && req.files.length > 0 ? req.files.map(file => file.path) : null;
-
-            try {
-                const product = await Product.findById(id);
-                if (!product) {
-                    return res.status(404).json({ msg: "Produto não encontrado." });
-                }
-
-                if (newImgPaths) {
-                    product.images.forEach(imagePath => {
-                        fs.unlink(imagePath, err => {
-                            if (err) console.error(`Erro ao deletar a imagem antiga: ${imagePath}`);
-                        });
-                    });
-                    product.images = newImgPaths;
-                }
-
-                product.nome = nome;
-                product.precoPrazo = precoPrazo;
-                product.preco = precoPrazo - precoPrazo * 0.1;
-                product.descricao = descricao;
-                product.especificacoes = especificacoes;
-                product.marca = marca;
-                product.categoria = categoria;
-
-                await product.save();
-
-                res.status(200).json({ msg: "Produto atualizado com sucesso!" });
-            } catch (error) {
-                console.error(error);
-                res.status(500).json({ msg: "Erro no servidor." });
-            }
+            return res.status(400).json({ msg: "Todos os campos são obrigatórios." });
         }
+
+        if (req.files && req.files.length > 5) {
+            req.files.forEach(file =>
+                fs.unlink(file.path, err => {
+                    if (err) console.error(`Erro ao deletar o arquivo: ${file.path}`);
+                })
+            );
+            return res.status(400).json({ msg: "É necessário enviar no máximo 5 imagens." });
+        }
+
+        const newImgPaths = req.files && req.files.length > 0 ? req.files.map(file => file.path) : null;
+
+        try {
+            const product = await Product.findById(id);
+            if (!product) {
+                return res.status(404).json({ msg: "Produto não encontrado." });
+            }
+
+            if (newImgPaths) {
+                product.images.forEach(imagePath => {
+                    fs.unlink(imagePath, err => {
+                        if (err) console.error(`Erro ao deletar a imagem antiga: ${imagePath}`);
+                    });
+                });
+                product.images = newImgPaths;
+            }
+
+            product.nome = nome;
+            product.precoPrazo = precoPrazo;
+            product.preco = precoPrazo - precoPrazo * 0.1;
+            product.descricao = descricao;
+            product.especificacoes = especificacoes;
+            product.marca = marca;
+            product.categoria = categoria;
+
+            await product.save();
+
+            res.status(200).json({ msg: "Produto atualizado com sucesso!" });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ msg: "Erro no servidor." });
+        }
+    }
     );
-
-
 
     app.get("/listar-produto/:id", async (req, res) => {
         const id = req.params.id;
@@ -147,7 +141,10 @@ function productController(app) {
 
     app.get("/listar-produtos", async (req, res) => {
         try {
-            const produtos = await Product.find({ estoque: { $gte: 1 } })
+            const produtos = await Product.find({
+                estoque: { $gte: 1 },
+                status: "ativo"
+            })
                 .select('_id nome precoPrazo preco images')
                 .slice('images', 1)
                 .lean();
@@ -179,8 +176,9 @@ function productController(app) {
 
             const regex = createAccentInsensitiveRegex(query);
 
-            const filtro = {
+            const busca = {
                 estoque: { $gte: 1 },
+                status: "ativo",
                 $or: [
                     { nome: { $regex: regex } },
                     { categoria: { $regex: regex } },
@@ -195,7 +193,7 @@ function productController(app) {
                 sortOption = { [sortField]: sortOrder };
             }
 
-            const results = await Product.find(filtro)
+            const results = await Product.find(busca)
                 .select('_id nome precoPrazo preco images')
                 .slice('images', 1)
                 .sort(sortOption)
@@ -234,7 +232,8 @@ function productController(app) {
 
             const marcaBusca = {
                 marca: { $regex: new RegExp(marca, 'i') },
-                estoque: { $gte: 1 }
+                estoque: { $gte: 1 },
+                status: "ativo",
             };
 
             const produtos = await Product.find(marcaBusca)
@@ -256,7 +255,8 @@ function productController(app) {
 
             const categoriaBusca = {
                 categoria: { $regex: new RegExp(categoria, 'i') },
-                estoque: { $gte: 1 }
+                estoque: { $gte: 1 },
+                status: "ativo",
             };
 
             let sortOption = {};
@@ -283,7 +283,7 @@ function productController(app) {
         try {
             const { divisao } = req.query;
 
-            const produtos = await Product.find({ estoque: { $gte: 1 } })
+            const produtos = await Product.find({ estoque: { $gte: 1 }, status: "ativo" })
                 .select('_id nome precoPrazo preco images')
                 .slice('images', 1)
                 .lean();
@@ -314,7 +314,13 @@ function productController(app) {
                 return res.status(400).json({ message: 'É necessário fornecer uma lista de categorias.' });
             }
 
-            const categoriaBusca = { categoria: { $in: categorias.map(cat => new RegExp(cat, 'i')) } };
+            const categoriaBusca = {
+                $and: [
+                    { categoria: { $in: categorias.map(cat => new RegExp(cat, 'i')) } },
+                    { estoque: { $gte: 1 } },
+                    { status: "ativo" }
+                ]
+            };
 
             let sortOption = {};
             if (sort) {
@@ -390,7 +396,7 @@ function productController(app) {
 
     app.put('/adicionar-estoque', checkPermision('adm'), async (req, res) => {
         try {
-            const resultado = await Product.updateMany({}, { $inc: { estoque: 10 } });
+            const resultado = await Product.updateMany({}, { $inc: { estoque: 1 } });
 
             res.status(200).json({
                 msg: 'Estoque incrementado com sucesso!',
@@ -429,6 +435,28 @@ function productController(app) {
                 msg: 'Erro ao atualizar estoque.',
                 erro: error.message,
             });
+        }
+    });
+
+    app.get("/listar-produtos-por-estoque", checkPermision('adm'), async (req, res) => {
+        try {
+            const { estoque } = req.query;
+
+            const produtos = await Product.find({
+                estoque: { $lt: Number(estoque) },
+            })
+                .select('_id nome precoPrazo preco categoria marca images estoque status')
+                .slice('images', 1)
+                .lean();
+
+            if (produtos.length === 0) {
+                return res.status(404).json({ msg: "Nenhum produto encontrado!" });
+            }
+
+            res.status(200).json({ produtos });
+        } catch (error) {
+            console.error("Erro ao listar produtos:", error);
+            res.status(500).json({ msg: "Erro no servidor!" });
         }
     });
 }

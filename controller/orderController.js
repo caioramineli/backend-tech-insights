@@ -3,18 +3,32 @@ const User = require('../models/User')
 const Cupon = require('../models/Cupon')
 const Product = require('../models/Product')
 const checkPermision = require('../config/checkPermision');
+const atualizarEstoqueERegistrarMovimentacao = require('../utils/registerMovement');
 const axios = require('axios');
 
 function orderController(app) {
 
-    const ajustarEstoque = async (produtosComprados) => {
-        for (const item of produtosComprados) {
-            const { idProduto, quantidade } = item;
+    const ajustarEstoque = async (produtosComprados, usuario) => {
+        try {
+            for (const item of produtosComprados) {
+                const { idProduto, quantidade } = item;
 
-            await Product.findByIdAndUpdate(
-                idProduto,
-                { $inc: { estoque: -quantidade } }
-            );
+                await Product.findByIdAndUpdate(
+                    idProduto,
+                    { $inc: { estoque: -quantidade } }
+                );
+
+                const origem = 'Pedido Realizado';
+                const resultado = await atualizarEstoqueERegistrarMovimentacao(idProduto, quantidade, usuario, origem);
+
+                if (!resultado.success) {
+                    throw new Error(`Erro ao registrar movimentação para o produto ${idProduto}`);
+                }
+            }
+
+            return { success: true, msg: 'Estoque ajustado e movimentações registradas com sucesso!' };
+        } catch (error) {
+            return { success: false, msg: error.message || 'Erro ao ajustar estoque.' };
         }
     };
 
@@ -56,7 +70,13 @@ function orderController(app) {
 
             await order.save();
 
-            await ajustarEstoque(produtos);
+            const movimentacaoNoEstoque = await ajustarEstoque(produtos, idUser);
+
+            if (movimentacaoNoEstoque.success) {
+                console.log(movimentacaoNoEstoque.msg);
+            } else {
+                console.error(movimentacaoNoEstoque.msg);
+            }
 
             let cupom = null;
             if (codigoCupom) {
@@ -79,7 +99,6 @@ function orderController(app) {
             res.status(500).json({ msg: "Erro ao realizar o pedido!" });
         }
     });
-
 
     app.get('/user/:id/orders', checkPermision('normal'), async (req, res) => {
         const { id } = req.params;
@@ -296,6 +315,48 @@ function orderController(app) {
 
         } catch (error) {
             res.status(500).json({ msg: 'Erro ao alterar status!' });
+        }
+    });
+
+    app.get('/relatorio-vendas', checkPermision('adm'), async (req, res) => {
+        try {
+            const ano = 2024;
+            const { mes = new Date().getMonth() + 1 } = req.query;
+
+            const mesNumerico = parseInt(mes, 10);
+            if (isNaN(mesNumerico) || mesNumerico < 1 || mesNumerico > 12) {
+                return res.status(400).json({ message: "O parâmetro 'mes' deve ser um número entre 1 e 12." });
+            }
+
+            const inicioDoMes = new Date(ano, mesNumerico - 1, 1);
+            const fimDoMes = new Date(ano, mesNumerico, 0, 23, 59, 59);
+
+            const vendasDiarias = await Order.aggregate([
+                {
+                    $match: {
+                        data: { $gte: inicioDoMes, $lte: fimDoMes },
+                    },
+                },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: "%Y-%m-%d", date: "$data" } },
+                        total: { $sum: "$valorTotal" },
+                    },
+                },
+                {
+                    $sort: { _id: 1 },
+                },
+            ]);
+
+            const resultado = vendasDiarias.map((venda) => ({
+                dia: venda._id,
+                total: venda.total,
+            }));
+
+            res.json(resultado);
+        } catch (error) {
+            console.error("Erro ao buscar vendas:", error);
+            res.status(500).json({ message: "Erro ao buscar vendas" });
         }
     });
 

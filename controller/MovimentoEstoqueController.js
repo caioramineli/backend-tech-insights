@@ -1,49 +1,33 @@
-const express = require('express');
 const MovimentoEstoque = require('../models/MovimentoEstoque');
-const Product = require('../models/Product')
 const checkPermision = require('../config/checkPermision');
+const atualizarEstoqueERegistrarMovimentacao = require('../utils/registerMovement');
 
 function movimentoEstoqueController(app) {
-    app.post('/registra-movimentacao', async (req, res) => {
+    app.post('/registra-movimentacao', checkPermision('adm'), async (req, res) => {
         const { produtoId, quantidade, usuario } = req.body;
 
         if (!produtoId || !quantidade || !usuario) {
             return res.status(400).json({ msg: "Todos os campos são obrigatórios." });
         }
 
-        try {
-            const produto = await Product.findById(produtoId);
+        const origem = 'Adicionar Estoque'
 
-            if (!produto) {
-                return res.status(404).json({ msg: "Produto não encontrado!" });
-            }
+        const resultado = await atualizarEstoqueERegistrarMovimentacao(produtoId, quantidade, usuario, origem);
 
-            produto.estoque = produto.estoque + quantidade
-
-            await produto.save()
-
-            const novaMovimentacao = new MovimentoEstoque({
-                produtoId,
-                quantidade,
-                usuario
+        if (resultado.success) {
+            return res.status(201).json({
+                msg: resultado.mensagem,
+                movimentacao: resultado.movimentacao
             });
-
-            const resultado = await novaMovimentacao.save();
-
-            res.status(201).json({
-                msg: "Movimentação registrada com sucesso!",
-                movimentacao: resultado
-            });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ msg: "Erro ao registrar movimentação." });
+        } else {
+            return res.status(400).json({ msg: resultado.mensagem });
         }
     });
 
     app.get('/listar-movimentacoes', checkPermision('adm'), async (req, res) => {
         try {
             const movimentacoes = await MovimentoEstoque.find()
-                .populate('produtoId', 'nome preco')
+                .populate('produtoId', 'nome images')
                 .populate('usuario', 'nome email')
                 .sort({ dataMovimento: -1 });
 

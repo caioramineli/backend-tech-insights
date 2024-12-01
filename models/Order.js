@@ -59,7 +59,7 @@ const orderSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        default: 'Pendente'
+        default: 'Pedido Realizado'
     }
 });
 
