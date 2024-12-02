@@ -13,13 +13,8 @@ function orderController(app) {
             for (const item of produtosComprados) {
                 const { idProduto, quantidade } = item;
 
-                await Product.findByIdAndUpdate(
-                    idProduto,
-                    { $inc: { estoque: -quantidade } }
-                );
-
                 const origem = 'Pedido Realizado';
-                const resultado = await atualizarEstoqueERegistrarMovimentacao(idProduto, quantidade, usuario, origem);
+                const resultado = await atualizarEstoqueERegistrarMovimentacao(idProduto, -quantidade, usuario, origem);
 
                 if (!resultado.success) {
                     throw new Error(`Erro ao registrar movimentação para o produto ${idProduto}`);

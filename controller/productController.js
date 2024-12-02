@@ -344,7 +344,7 @@ function productController(app) {
 
     app.get('/admin-buscar-produtos', checkPermision('adm'), async (req, res) => {
         try {
-            const { query, sort } = req.query;
+            const { query, sort, page = 1, limit = 10 } = req.query;
 
             const queryString = typeof query === 'string' ? query : null;
 
@@ -378,16 +378,30 @@ function productController(app) {
                 }
             }
 
+            const currentPage = parseInt(page, 10) || 1;
+            const itemsPerPage = parseInt(limit, 10) || 10;
+
+            const totalItems = await Product.countDocuments(searchCriterio);
+
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+
             const produtos = await Product.find(searchCriterio)
                 .collation({ locale: "pt", strength: 2 })
                 .sort(sortOption)
+                .skip((currentPage - 1) * itemsPerPage)
+                .limit(itemsPerPage)
                 .lean();
 
             if (!produtos || produtos.length === 0) {
                 return res.status(404).json({ msg: 'Nenhum produto encontrado!' });
             }
 
-            res.status(200).json(produtos);
+            res.status(200).json({
+                produtos,
+                totalItems,
+                totalPages,
+                currentPage,
+            });
         } catch (error) {
             console.error('Erro ao realizar a busca de produtos:', error);
             res.status(500).json({ msg: 'Erro no servidor' });
