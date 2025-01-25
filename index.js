@@ -11,11 +11,13 @@ const { cuponController } = require('./controller/cuponController')
 const { avaliacaoController } = require('./controller/avaliacaoController')
 const { movimentoEstoqueController } = require('./controller/MovimentoEstoqueController')
 
+const { userFinanceController } = require('./controller/userFinanceController')
+
 const app = express()
 const port = process.env.PORT || 5000
 
 app.use(cors({
-    origin: ['https://techinsights-tcc.vercel.app', 'http://localhost:3000', 'https://techinsights.store']
+    origin: ['https://techinsights-tcc.vercel.app', 'http://localhost:3000', 'https://techinsights.store', 'http://localhost:8080',]
 }));
 
 app.use(express.json())
@@ -28,6 +30,7 @@ orderController(app)
 cuponController(app)
 avaliacaoController(app)
 movimentoEstoqueController(app)
+userFinanceController(app)
 
 app.use('/imgs', express.static(path.join(__dirname, 'imgs')));
 

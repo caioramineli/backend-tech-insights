@@ -1,14 +1,14 @@
 const mongoose = require('mongoose');
 
 const enderecoSchema = new mongoose.Schema({
-    nome: String,
-    cep: String,
-    rua: String,
-    numero: String,
-    complemento: String,
-    bairro: String,
-    cidade: String,
-    estado: String,
+    nome: { type: String, required: true },
+    cep: { type: String, required: true },
+    rua: { type: String, required: true },
+    numero: { type: String, required: true },
+    complemento: { type: String, required: false },
+    bairro: { type: String, required: true },
+    cidade: { type: String, required: true },
+    estado: { type: String, required: true },
 });
 
 const userSchema = new mongoose.Schema({
