@@ -1,8 +1,9 @@
 const jwt = require('jsonwebtoken');
 const UserFinance = require('../models/UserFinance')
+const mongoose = require('mongoose')
 
 function userFinanceController(app) {
-    app.post('/user-register', async (req, res) => {        
+    app.post('/user-register', async (req, res) => {
         const { name, email, password } = req.body
 
         if (!name || !email || !password) {
@@ -26,7 +27,6 @@ function userFinanceController(app) {
             res.status(201).json({ msg: 'Usuário criado com sucesso!' })
 
         } catch (error) {
-            console.log(error);
             res.status(500).json({ msg: "Erro no servidor!" })
         }
     })
@@ -63,6 +63,26 @@ function userFinanceController(app) {
             res.status(404).json({ msg: "Email ou senha inválidos!" });
         }
     });
+
+    app.get('/get-user/:userId', async (req, res) => {
+        const { userId } = req.params
+
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ msg: 'Não corresponde a um ObjectId format' });
+        }
+
+        const user = await UserFinance.findById(userId, '-password')
+
+        if (!user) {
+            return res.status(404).json({ msg: "Usuário não encontrado!" })
+        }
+
+        try {
+            res.status(200).json(user)
+        } catch (error) {
+            res.status(500).json({ msg: "Erro no servidor!" })
+        }
+    })
 }
 
 module.exports = { userFinanceController };
