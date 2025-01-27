@@ -11,7 +11,8 @@ const { cuponController } = require('./controller/cuponController')
 const { avaliacaoController } = require('./controller/avaliacaoController')
 const { movimentoEstoqueController } = require('./controller/MovimentoEstoqueController')
 
-const { userFinanceController } = require('./controller/userFinanceController')
+const { userFinanceController } = require('./controller/userFinanceController');
+const { contactController } = require('./controller/contactController');
 
 const app = express()
 const port = process.env.PORT || 5000
@@ -30,7 +31,9 @@ orderController(app)
 cuponController(app)
 avaliacaoController(app)
 movimentoEstoqueController(app)
+
 userFinanceController(app)
+contactController(app)
 
 app.use('/imgs', express.static(path.join(__dirname, 'imgs')));
 

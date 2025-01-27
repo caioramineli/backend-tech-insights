@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const UserFinance = require('../models/UserFinance')
 const mongoose = require('mongoose')
+const authMiddleware = require('../auth/checkToken')
 
 function userFinanceController(app) {
     app.post('/user-register', async (req, res) => {
@@ -64,14 +65,8 @@ function userFinanceController(app) {
         }
     });
 
-    app.get('/get-user/:userId', async (req, res) => {
-        const { userId } = req.params
-
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
-            return res.status(400).json({ msg: 'Não corresponde a um ObjectId format' });
-        }
-
-        const user = await UserFinance.findById(userId, '-password')
+    app.get('/get-user', authMiddleware, async (req, res) => {
+        const user = await UserFinance.findById(req.userId, '-password')
 
         if (!user) {
             return res.status(404).json({ msg: "Usuário não encontrado!" })

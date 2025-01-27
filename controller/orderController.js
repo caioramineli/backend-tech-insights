@@ -2,7 +2,7 @@ const Order = require('../models/Order')
 const User = require('../models/User')
 const Cupon = require('../models/Cupon')
 const Product = require('../models/Product')
-const checkPermision = require('../config/checkPermision');
+const checkPermision = require('../auth/checkPermision');
 const atualizarEstoqueERegistrarMovimentacao = require('../utils/registerMovement');
 const axios = require('axios');
 

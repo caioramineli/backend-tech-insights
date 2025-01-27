@@ -2,7 +2,7 @@ const fs = require("fs");
 const Product = require('../models/Product');
 const upload = require('../config/multer');
 const createAccentInsensitiveRegex = require('../utils/addAccent');
-const checkPermision = require('../config/checkPermision');
+const checkPermision = require('../auth/checkPermision');
 
 function productController(app) {
     app.post("/criar-produto", upload.array("images", 5), checkPermision('adm'), async (req, res) => {

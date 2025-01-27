@@ -1,5 +1,5 @@
 const MovimentoEstoque = require('../models/MovimentoEstoque');
-const checkPermision = require('../config/checkPermision');
+const checkPermision = require('../auth/checkPermision');
 const atualizarEstoqueERegistrarMovimentacao = require('../utils/registerMovement');
 
 function movimentoEstoqueController(app) {

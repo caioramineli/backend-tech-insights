@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt')
-const checkPermision = require('../config/checkPermision');
+const checkPermision = require('../auth/checkPermision');
 const jwt = require('jsonwebtoken');
 const { Resend } = require('resend');
 

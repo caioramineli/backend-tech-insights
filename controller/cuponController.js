@@ -1,5 +1,5 @@
 const Cupon = require('../models/Cupon')
-const checkPermision = require('../config/checkPermision');
+const checkPermision = require('../auth/checkPermision');
 
 function cuponController(app) {
 
