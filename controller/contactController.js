@@ -20,7 +20,7 @@ function contactController(app) {
 
         try {
             await contact.save()
-            res.status(201).json({ msg: 'Contato criado com sucesso!' })
+            res.status(201).json({ contact, msg: 'Contato criado com sucesso!' })
 
         } catch (error) {
             res.status(500).json({ msg: "Erro no servidor!" })
@@ -29,6 +29,8 @@ function contactController(app) {
 
     app.get('/get-contacts-by-user', authMiddleware, async (req, res) => {
         const contacts = await Contact.find({ user: req.userId }).select('-user')
+        console.log('bateu aqui');
+
 
         if (!contacts) {
             return res.status(404).json({ msg: "Nenhum contato encontrado!" })
@@ -42,35 +44,38 @@ function contactController(app) {
     })
 
     app.put('/update-contact', authMiddleware, async (req, res) => {
-        const { id, name, email, phone, company } = req.body
+        const contactData = {
+            ...req.body,
+            id: req.body._id || req.body.id,
+        };
 
-        if (!id || !name || !email || !phone || !company) {
+        if (!contactData.id || !contactData.name || !contactData.email || !contactData.phone || !contactData.company) {
             return res.status(422).json({ msg: "Preencha todos os campos!" });
         }
 
         try {
-            const contact = await Contact.findById(id)
+            const contact = await Contact.findById(contactData.id)
 
             if (!contact) {
                 return res.status(404).json({ msg: "Contato não encontrado!" })
             }
 
-            contact.name = name;
-            contact.email = email;
-            contact.phone = phone;
-            contact.company = company;
+            contact.name = contactData.name;
+            contact.email = contactData.email;
+            contact.phone = contactData.phone;
+            contact.company = contactData.company;
 
             await contact.save();
 
-            res.status(200).json({ msg: 'Contato atualizado com sucesso!' })
+            res.status(200).json({ contact, msg: 'Contato atualizado com sucesso!' })
 
         } catch (error) {
             res.status(500).json({ msg: "Erro no servidor!" })
         }
     })
 
-    app.delete('/delete-contact', authMiddleware, async (req, res) => {
-        const { contactId } = req.body
+    app.delete('/delete-contact/:contactId', async (req, res) => {
+        const { contactId } = req.params
 
         if (!contactId) {
             return res.status(422).json({ msg: "Id não informado!" });
