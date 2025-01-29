@@ -18,7 +18,7 @@ const app = express()
 const port = process.env.PORT || 5000
 
 app.use(cors({
-    origin: ['https://techinsights-tcc.vercel.app', 'http://localhost:3000', 'https://techinsights.store', 'http://localhost:8080',]
+    origin: ['https://techinsights-tcc.vercel.app', 'http://localhost:3000', 'https://techinsights.store', 'http://localhost:8080', 'https://mycontacts-vue.netlify.app']
 }));
 
 app.use(express.json())

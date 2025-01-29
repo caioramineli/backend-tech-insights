@@ -29,8 +29,6 @@ function contactController(app) {
 
     app.get('/get-contacts-by-user', authMiddleware, async (req, res) => {
         const contacts = await Contact.find({ user: req.userId }).select('-user')
-        console.log('bateu aqui');
-
 
         if (!contacts) {
             return res.status(404).json({ msg: "Nenhum contato encontrado!" })
